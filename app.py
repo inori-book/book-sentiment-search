@@ -1,111 +1,131 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib
 from janome.tokenizer import Tokenizer
-from collections import Counter
-import numpy as np
+import plotly.express as px
 
-# --- 日本語フォント設定 ---
-matplotlib.rcParams['font.family'] = 'IPAexGothic'  # macOS/共通フォント
+# ——————————————————
+# １）データ読み込み＆前処理
+# ——————————————————
+@st.cache(allow_output_mutation=True)
+def load_data(path="sample05.csv"):
+    df = pd.read_csv(path)
+    # ジャンルをカンマ区切りでリスト化
+    df["genre_list"] = (
+        df["genre"]
+        .fillna("")
+        .apply(lambda s: [g.strip() for g in s.split(",") if g.strip()])
+    )
+    return df
 
-# --- データ読み込み ---
-df = pd.read_csv("sample05.csv")
+df = load_data()
 
-# --- Streamlit レイアウト ---
-st.set_page_config(layout="wide")
+# プルダウン用ジャンル一覧
+all_genres = sorted({g for genres in df["genre_list"] for g in genres})
+all_genres.insert(0, "All")  # 先頭に「All」を追加
+
+# セッションステート初期化
+if "ranking" not in st.session_state:
+    st.session_state.ranking = None
+if "selected" not in st.session_state:
+    st.session_state.selected = None
+
+# ——————————————————
+# ２）トップ画面（検索フォーム）
+# ——————————————————
 st.title("📚 感想形容詞で探す本アプリ")
+with st.form("search_form"):
+    genre_filter = st.selectbox("ジャンルを選択", all_genres)
+    adj_input = st.text_input("形容詞を入力してください")
+    submitted = st.form_submit_button("検索")
 
-# --- サイドバー: ジャンル絞り込み ---
-genres = ["All"] + sorted(df['genre'].dropna().unique().tolist())
-selected_genre = st.sidebar.selectbox("ジャンルを選択", genres)
-
-# --- サイドバー: タグ絞り込み（必要に応じて） ---
-tag_cols = [c for c in ['tags_fear_type','tags_motif','tags_style','tags_aftertaste'] if c in df.columns]
-selected_tags = {}
-for col in tag_cols:
-    options = sorted({t for tags in df[col].dropna() for t in str(tags).split(",")})
-    selected = st.sidebar.multiselect(col.replace('tags_','').capitalize(), options)
-    selected_tags[col] = selected
-
-# --- データフィルタリング ---
-filtered = df.copy()
-if selected_genre != "All":
-    filtered = filtered[filtered['genre'] == selected_genre]
-if tag_cols:
-    def match_tags(r):
-        for col, sel in selected_tags.items():
-            if sel:
-                vals = [t.strip() for t in str(r[col]).split(",")]
-                if not any(t in vals for t in sel):
-                    return False
-        return True
-    filtered = filtered[filtered.apply(match_tags, axis=1)]
-
-# --- 感想から形容詞を抽出する関数 ---
-def extract_adjs(text):
-    t = Tokenizer()
-    return [tok.surface for tok in t.tokenize(str(text)) if '形容詞' in tok.part_of_speech]
-
-# --- メイン: 形容詞検索 ---
-st.markdown("## 🔍 感想によく出る形容詞で本を探す")
-search_adj = st.text_input("形容詞を入力してください", "")
-search_btn = st.button("検索")
-
-if search_btn and search_adj:
-    # 入力語が辞書にあるかチェック
-    all_adjs = []
-    for rev in filtered['review'].dropna():
-        all_adjs.extend(extract_adjs(rev))
-    if search_adj not in set(all_adjs):
-        st.warning(f"「{search_adj}」は感想に登場していない形容詞です。別のワードを試してください。")
+if submitted:
+    # ジャンルフィルタ
+    if genre_filter != "All":
+        df_f = df[df["genre_list"].apply(lambda lst: genre_filter in lst)]
     else:
-        # 本ごとの出現回数をカウント
-        counts = []
-        for idx, r in filtered.iterrows():
-            cnt = extract_adjs(r['review']).count(search_adj)
-            if cnt > 0:
-                counts.append((idx, cnt))
-        if not counts:
-            st.info("該当する本がありませんでした。")
-        else:
-            counts.sort(key=lambda x: x[1], reverse=True)
-            titles = [f"{i+1}位: {filtered.loc[i,'title']} / {filtered.loc[i,'author']} ({c}回)" \
-                      for i, (i,c) in enumerate(counts)]
-            sel = st.selectbox("本を選択してください", titles)
-            sel_idx = counts[[i for i,(idx,_) in enumerate(counts) 
-                              if f"{filtered.loc[idx,'title']} / {filtered.loc[idx,'author']}" in sel][0]][0]
-            book = filtered.loc[sel_idx]
+        df_f = df.copy()
+    # マッチスコア計算（感想中の形容詞出現回数）
+    df_f["match_score"] = df_f["review"].apply(lambda txt: txt.count(adj_input))
+    df_f = df_f[df_f["match_score"] > 0].sort_values("match_score", ascending=False)
+    st.session_state.ranking = df_f.reset_index(drop=True)
+    st.session_state.selected = None
 
-            # --- 詳細ページ表示 ---
-            st.markdown(f"### 📖 『{book['title']}』 by {book['author']}")
-            st.write(book['review'])
+# ——————————————————
+# ３）ランキング一覧画面
+# ——————————————————
+if st.session_state.ranking is not None and st.session_state.selected is None:
+    st.subheader("🔢 検索結果ランキング")
+    for idx, row in st.session_state.ranking.head(10).iterrows():
+        label = f"{idx+1}位: {row['title']} / {row['author']} （{row['match_score']}回）"
+        if st.button(label, key=idx):
+            st.session_state.selected = row
 
-            # レーダーチャート用データ
-            st.markdown("#### レーダーチャート(6軸)")
-            labels = ['erotic','grotesque','insane','paranomal','esthetic','painful']
-            values = [book.get(l, 0) for l in labels]
-            angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
-            values += values[:1]; angles += angles[:1]
-            fig, ax = plt.subplots(subplot_kw=dict(polar=True))
-            ax.plot(angles, values, 'o-', linewidth=2)
-            ax.fill(angles, values, alpha=0.3)
-            ax.set_thetagrids(np.degrees(angles[:-1]), ['エロ','グロ','狂気','超常','美的','痛み'])
-            st.pyplot(fig)
+# ——————————————————
+# ４）詳細画面
+# ——————————————————
+if st.session_state.selected is not None:
+    book = st.session_state.selected
+    if st.button("◀ 戻る"):
+        st.session_state.selected = None
+        st.experimental_rerun()
 
-            # 形容詞Top5
-            st.markdown("#### 感想によく使われた形容詞 Top5")
-            adjs = extract_adjs(book['review'])
-            top5 = Counter(adjs).most_common(5)
-            if top5:
-                w, v = zip(*top5)
-                fig2, ax2 = plt.subplots()
-                ax2.bar(w, v)
-                ax2.set_ylabel('出現回数')
-                ax2.set_title('形容詞頻出Top5')
-                st.pyplot(fig2)
-            else:
-                st.info('形容詞が見つかりませんでした。')
+    st.markdown(f"## 📖 『{book['title']}』 by {book['author']}")
+    st.markdown(book["review"])
 
-else:
-    st.info("検索ワードを入力して「検索」ボタンを押してください。")
+    # 形容詞Top5を抽出
+    tokenizer = Tokenizer()
+    tokens = [
+        t.surface
+        for t in tokenizer.tokenize(book["review"])
+        if t.part_of_speech.startswith("形容詞,自立")
+    ]
+    top5 = (
+        pd.Series(tokens)
+        .value_counts()
+        .head(5)
+        .reset_index()
+        .rename(columns={"index": "形容詞", 0: "出現回数"})
+    )
+
+    # — 棒グラフ —
+    fig_bar = px.bar(
+        top5,
+        x="形容詞",
+        y="出現回数",
+        title="📊 感想でよく使われた形容詞 (Top 5)",
+        labels={"出現回数": "回数"},
+    )
+    fig_bar.update_layout(
+        font_family="sans-serif",
+        margin=dict(t=40, b=20),
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+    # — レーダーチャート —
+    radar_labels = ["エロ", "グロ", "狂気", "超常", "美的", "痛み"]
+    radar_values = [
+        book["erotic"],
+        book["grotesque"],
+        book["insane"],
+        book["paranormal"],
+        book["esthetic"],
+        book["painful"],
+    ]
+    # 最後に最初の値を追記して閉ループさせる
+    df_radar = pd.DataFrame({
+        "カテゴリ": radar_labels + [radar_labels[0]],
+        "値": radar_values + [radar_values[0]],
+    })
+    fig_radar = px.line_polar(
+        df_radar,
+        r="値",
+        theta="カテゴリ",
+        line_close=True,
+        title="🏷️ レーダーチャート (6軸)",
+    )
+    fig_radar.update_traces(fill="toself")
+    fig_radar.update_layout(
+        font_family="sans-serif",
+        margin=dict(t=40, b=20),
+    )
+    st.plotly_chart(fig_radar, use_container_width=True)
