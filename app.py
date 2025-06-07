@@ -1,13 +1,15 @@
 import streamlit as st
+
+# --- これがファーストコマンド ---
+st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide")
+
 import pandas as pd
 import plotly.express as px
 from janome.tokenizer import Tokenizer
 
-# キャッシュ設定（st.cache_data に移行）
 @st.cache_data
 def load_data(path):
     df = pd.read_csv(path)
-    # 列名の前後空白を除去
     df.columns = [col.strip() for col in df.columns]
     return df
 
@@ -15,8 +17,6 @@ def load_data(path):
 DATA_PATH = "sample05.csv"
 df = load_data(DATA_PATH)
 
-# ページ設定
-st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide")
 st.title("📚 感想形容詞で探す本アプリ")
 
 # サイドバー：ジャンル選択
@@ -24,47 +24,46 @@ genres = sorted({g for subs in df["genre"] for g in subs.split(",")})
 genres.insert(0, "全て")
 selected_genre = st.sidebar.selectbox("ジャンルを選択", genres)
 
-# メイン：検索フォーム
+# 検索フォーム
 st.subheader("🔍 感想によく出る形容詞で本を探す")
 adj_input = st.text_input("形容詞を入力してください")
+
 if st.button("検索"):
     # ジャンル絞り込み
+    df_filtered = df.copy()
     if selected_genre != "全て":
-        df = df[df["genre"].apply(lambda s: selected_genre in s.split(","))]
+        df_filtered = df_filtered[df_filtered["genre"]
+                                  .apply(lambda s: selected_genre in s.split(","))]
 
     # 形容詞抽出
     tokenizer = Tokenizer()
     def extract_adjs(text):
-        return [
-            tok.surface for tok in tokenizer.tokenize(text)
-            if tok.part_of_speech.startswith("形容詞")
-        ]
-    df["adjectives"] = df["review"].apply(extract_adjs)
+        return [tok.surface for tok in tokenizer.tokenize(text)
+                if tok.part_of_speech.startswith("形容詞")]
+    df_filtered["adjectives"] = df_filtered["review"].apply(extract_adjs)
 
-    # 指定形容詞の出現回数をカウント
-    df["count"] = df["adjectives"].apply(lambda lst: lst.count(adj_input))
-    hits = df[df["count"] > 0].copy()
+    # 入力形容詞の出現回数をカウント
+    df_filtered["count"] = df_filtered["adjectives"].apply(lambda lst: lst.count(adj_input))
+    hits = df_filtered[df_filtered["count"] > 0].copy()
 
-    # ランキング
-    ranking = hits.sort_values("count", ascending=False)[["title", "author", "count"]]
+    # ランキング表示
     st.subheader("🔢 検索結果ランキング")
-    for i, row in ranking.iterrows():
-        st.write(f"{i+1}位: {row['title']} / {row['author']} ({row['count']}回)")
-        if st.button(f"詳細を見る: {row['title']}", key=i):
-            st.session_state.selected = i
+    hits = hits.sort_values("count", ascending=False).reset_index(drop=True)
+    for idx, row in hits.iterrows():
+        st.write(f"{idx+1}位: 『{row['title']}』 / {row['author']} （{row['count']}回）")
+        if st.button(f"詳細を見る：{row['title']}", key=idx):
+            st.session_state.selected = idx
 
-    # 詳細画面
+    # 詳細ページ
     if "selected" in st.session_state:
-        sel_idx = st.session_state.selected
-        sel_book = ranking.iloc[sel_idx]
-        orig_idx = sel_book.name
-        rec = hits.loc[orig_idx]
+        sel = st.session_state.selected
+        rec = hits.loc[sel]
 
         st.markdown("---")
-        st.header(f"📖 詳細ページ：『{sel_book['title']}』 by {sel_book['author']}")
+        st.header(f"📖 詳細ページ：『{rec['title']}』 by {rec['author']}")
         st.write(rec["review"])
 
-        # レーダーチャート
+        # レーダーチャート（6軸）
         axes = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful"]
         values = [rec[a] for a in axes]
         radar_df = pd.DataFrame({"axis": axes, "value": values})
@@ -74,7 +73,7 @@ if st.button("検索"):
         )
         st.plotly_chart(fig_rad, use_container_width=True)
 
-        # 頻出形容詞トップ5
+        # 頻出形容詞Top5 棒グラフ
         adj_counts = pd.Series(rec["adjectives"]).value_counts().head(5).reset_index()
         adj_counts.columns = ["形容詞", "出現回数"]
         fig_bar = px.bar(
