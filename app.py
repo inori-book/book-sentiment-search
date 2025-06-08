@@ -5,7 +5,7 @@ from janome.tokenizer import Tokenizer
 import plotly.express as px
 import matplotlib.pyplot as plt
 
-# ─── ページ設定（Must be first Streamlit command） ─────────────────
+# ─── ページ設定（Must be first）────────────────────────────────────
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide")
 
 # ─── 日本語フォント設定 ───────────────────────────────────────────
@@ -18,7 +18,7 @@ plt.rcParams['axes.unicode_minus'] = False
 # ─── 定数 ─────────────────────────────────────────────────────────
 DATA_PATH = "sample05.csv"
 FORM_URL  = "https://forms.gle/Eh3fYtnzSHmN3KMSA"
-STOPWORDS = {"ない", "っぽい", "良い", "いい", "すごい", "おもしろい"}
+STOPWORDS = {"ない", "っぽい", "良い", "いい", "すごい"}
 
 # ─── データ読み込み ───────────────────────────────────────────────
 @st.cache_data
@@ -31,7 +31,6 @@ df = load_data(DATA_PATH)
 
 # ─── Janome で形容詞抽出 ───────────────────────────────────────────
 tokenizer = Tokenizer()
-
 def extract_adjs(text):
     return [
         t.surface for t in tokenizer.tokenize(str(text))
@@ -40,20 +39,20 @@ def extract_adjs(text):
 
 @st.cache_data
 def get_candidates(data):
-    c = set()
+    s = set()
     for rev in data["review"]:
-        c.update(extract_adjs(rev))
-    return sorted(c)
+        s.update(extract_adjs(rev))
+    return sorted(s)
 
 ADJ_CANDIDATES = get_candidates(df)
 
-# ─── セッション初期化 ─────────────────────────────────────────────
-if "results" not in st.session_state:
-    st.session_state.results = None
-if "selected_idx" not in st.session_state:
-    st.session_state.selected_idx = None
-if "adj" not in st.session_state:
-    st.session_state.adj = ""
+# ─── セッションステート初期化 ─────────────────────────────────────
+state = st.session_state
+if "results" not in state:      state.results = None
+if "selected_idx" not in state: state.selected_idx = None
+if "adj" not in state:          state.adj = ""
+if "query" not in state:        state.query = ""
+if "choice" not in state:       state.choice = ""
 
 # ─── サイドバー：ジャンル選択 ─────────────────────────────────────
 genres = ["All"] + sorted({g for lst in df["genre_list"] for g in lst})
@@ -64,54 +63,49 @@ st.title("📚 感想形容詞で探す本アプリ")
 st.write("感想に登場する形容詞から本を検索します。")
 
 # ─── フロー制御 ─────────────────────────────────────────────────
-# 1) 検索前
-if st.session_state.results is None:
-    query = st.text_input("形容詞を入力してください", key="query")
-    suggestions = [w for w in ADJ_CANDIDATES if w.startswith(query)] if query else []
-    adj_choice = st.selectbox("候補から選ぶ", [""] + suggestions, key="choice")
+# 1) 検索フォーム表示
+if state.results is None:
+    state.query = st.text_input("形容詞を入力してください", value=state.query, key="query_input")
+    # 毎回最新の query に応じた候補リスト
+    suggestions = [w for w in ADJ_CANDIDATES if w.startswith(state.query)] if state.query else []
+    state.choice = st.selectbox("候補から選ぶ", [""] + suggestions, key="choice_input")
+
     if st.button("🔍 検索"):
-        target = adj_choice or query.strip()
+        target = state.choice or state.query.strip()
         if not target:
             st.warning("形容詞を入力または選択してください。")
         else:
-            # フィルタリング
-            dff = df.copy()
-            if selected_genre != "All":
-                dff = dff[dff["genre_list"].apply(lambda lst: selected_genre in lst)]
+            # ジャンル絞り込み
+            dff = df if selected_genre == "All" else df[df["genre_list"].apply(lambda lst: selected_genre in lst)]
             # 出現回数集計
             hits = []
             for i, row in dff.iterrows():
                 cnt = extract_adjs(row["review"]).count(target)
                 if cnt > 0:
                     hits.append((i, row["title"], row["author"], cnt))
+            # 降順ソート
             hits.sort(key=lambda x: x[3], reverse=True)
-            st.session_state.results = hits
-            st.session_state.adj = target
-            st.experimental_rerun()
+            state.results = hits
+            state.adj = target
 
 # 2) ランキング表示
-elif st.session_state.selected_idx is None:
-    adj = st.session_state.adj
-    st.subheader(f"🔎 「{adj}」がよく登場する本ランキング")
-    if not st.session_state.results:
-        st.info(f"「{adj}」を含む本は見つかりませんでした。")
-        if st.button("検索に戻る"):
-            st.session_state.results = None
-            st.experimental_rerun()
+elif state.selected_idx is None:
+    st.subheader(f"🔎 「{state.adj}」がよく登場する本ランキング")
+    if not state.results:
+        st.info(f"「{state.adj}」を含む本は見つかりませんでした。")
+        if st.button("🔙 検索に戻る"):
+            state.results = None
     else:
-        for rank, (idx, title, author, cnt) in enumerate(st.session_state.results, start=1):
+        for rank, (idx, title, author, cnt) in enumerate(state.results, start=1):
             st.write(f"**{rank}位**: 『{title}』／{author} （{cnt}回）")
             if st.button("詳細を見る", key=f"btn_{idx}"):
-                st.session_state.selected_idx = idx
-                st.experimental_rerun()
-        if st.button("検索に戻る", key="back1"):
-            st.session_state.results = None
-            st.experimental_rerun()
+                state.selected_idx = idx
+        if st.button("🔙 検索に戻る"):
+            state.results = None
 
 # 3) 詳細画面
 else:
-    idx = st.session_state.selected_idx
-    row = df.loc[idx]
+    row = df.loc[state.selected_idx]
     st.header(f"📖 『{row['title']}』 by {row['author']}")
     st.write(row["review"])
 
@@ -133,7 +127,7 @@ else:
     fig2 = px.bar(x=freqs.index, y=freqs.values, labels={"x":"形容詞","y":"回数"})
     st.plotly_chart(fig2, use_container_width=True)
 
-    # フォームリンク
+    # Googleフォームリンク
     st.markdown("---")
     st.markdown(
         f"""<div style="text-align:center; margin-top:1em;">
@@ -146,7 +140,8 @@ else:
         unsafe_allow_html=True
     )
 
-    if st.button("検索に戻る", key="back2"):
-        st.session_state.results = None
-        st.session_state.selected_idx = None
-        st.experimental_rerun()
+    if st.button("🔙 検索に戻る"):
+        state.results = None
+        state.selected_idx = None
+        state.choice = ""
+        state.query = ""
