@@ -3,3 +3,5 @@ pandas
 matplotlib
 janome
 plotly
+tweepy>=4.15.0
+python-dotenv
