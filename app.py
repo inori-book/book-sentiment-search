@@ -61,18 +61,18 @@ def fetch_openbd(isbn: str) -> dict:
         info["pubdate"] = summary.get("pubdate")
 
     if onix := book_data.get("onix"):
-        if dd := onix.get("DescriptiveDetail"):
+        if dd := onix.get("DescriptiveDetail", {}):
             if extents := dd.get("Extent"):
                 for extent in extents:
                     if extent.get("ExtentType") == "11":
                         info["pages"] = extent.get("ExtentValue")
                         break
-        if pd := onix.get("PublishingDetail"):
+        if pd := onix.get("PublishingDetail", {}):
             if prices := pd.get("Price"):
                 if prices and prices[0]:
                     info["price"] = prices[0].get("PriceAmount")
         
-        if cd := onix.get("CollateralDetail"):
+        if cd := onix.get("CollateralDetail", {}):
             if texts := cd.get("TextContent"):
                 for text in texts:
                     if text.get("TextType") == "03":
