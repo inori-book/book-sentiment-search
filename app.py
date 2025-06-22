@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 from janome.tokenizer import Tokenizer
 from collections import Counter
 import plotly.express as px
@@ -10,8 +11,8 @@ st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wi
 
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
 @st.cache_data
-def load_data(path: str = "sample06.csv") -> pd.DataFrame:
-    df = pd.read_csv(path).fillna("")
+def load_data(path: str = "sample07.csv") -> pd.DataFrame:
+    df = pd.read_csv(path, dtype={"isbn": str}).fillna("")
     # ジャンルをリスト化
     df["genres_list"] = df["genre"].str.split(",").apply(lambda lst: [g.strip() for g in lst if g.strip()])
     # Janome で形容詞抽出
@@ -32,6 +33,51 @@ def load_stopwords(path: str = "stopwords.txt") -> set[str]:
     except FileNotFoundError:
         words = {"ない", "っぽい"}
     return words
+
+@st.cache_data
+def fetch_openbd(isbn: str) -> dict:
+    """OpenBD APIから書籍情報を取得する"""
+    if not isbn:
+        return {}
+    
+    api_url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
+    try:
+        res = requests.get(api_url)
+        res.raise_for_status()
+        data = res.json()
+    except requests.exceptions.RequestException:
+        return {}
+
+    if not data or data[0] is None:
+        return {}
+        
+    book_data = data[0]
+    info = {}
+    
+    if summary := book_data.get("summary"):
+        info["cover"] = summary.get("cover")
+        info["publisher"] = summary.get("publisher")
+        info["pubdate"] = summary.get("pubdate")
+
+    if onix := book_data.get("onix"):
+        if dd := onix.get("DescriptiveDetail"):
+            if extents := dd.get("Extent"):
+                for extent in extents:
+                    if extent.get("ExtentType") == "11":
+                        info["pages"] = extent.get("ExtentValue")
+                        break
+        if pd := onix.get("PublishingDetail"):
+            if prices := pd.get("Price"):
+                if prices and prices[0]:
+                    info["price"] = prices[0].get("PriceAmount")
+        
+        if cd := onix.get("CollateralDetail"):
+            if texts := cd.get("TextContent"):
+                for text in texts:
+                    if text.get("TextType") == "03":
+                        info["description"] = text.get("Text")
+                        break
+    return info
 
 STOPWORDS = load_stopwords()
 all_adjs = sorted({adj for lst in df["adjectives"] for adj in lst})
@@ -119,6 +165,16 @@ elif st.session_state.page == "detail":
     else:
         book = res.loc[idx]
         st.header(f"{book['rank']}位：『{book['title']}』／{book['author']}")
+        
+        openbd = fetch_openbd(book["isbn"])
+        if openbd.get("cover"):
+            st.image(openbd["cover"], use_column_width=True)
+        st.write(f"**出版社**: {openbd.get('publisher','—')}")
+        st.write(f"**発行日**: {openbd.get('pubdate','—')}")
+        st.write(f"**ページ数**: {openbd.get('pages','—')}")
+        st.write(f"**定価**: {openbd.get('price','—')} 円")
+        st.write(f"**紹介文**: {openbd.get('description','—')}")
+
         # レーダーチャート
         radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful"]]
         radar_labels = ["エロ","グロ","狂気","超常","耽美","痛み"]
