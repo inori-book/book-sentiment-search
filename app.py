@@ -125,7 +125,7 @@ elif st.session_state.page == "detail":
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
                 title="読み味レーダーチャート",
-                polar=dict(radialaxis=dict(visible=True, range=[0, max(radar_vals)+1])),
+                polar=dict(radialaxis=dict(visible=True, range=[0, 5])),
                 showlegend=False
             )
         )
@@ -137,7 +137,13 @@ elif st.session_state.page == "detail":
         top5 = cnt.most_common(5)
         if top5:
             df5 = pd.DataFrame(top5, columns=["形容詞","回数"])
-            fig_bar = px.bar(df5, x="形容詞", y="回数", title="頻出形容詞TOP5")
+            fig_bar = go.Figure(
+                data=[go.Bar(x=df5["形容詞"], y=df5["回数"])],
+                layout=go.Layout(
+                    title="頻出形容詞TOP5",
+                    yaxis=dict(tickmode='linear', dtick=1)
+                )
+            )
             st.plotly_chart(fig_bar, use_container_width=True)
         else:
             st.info("有効な形容詞が見つかりませんでした。")
@@ -158,5 +164,5 @@ elif st.session_state.page == "detail":
         # else:
         #     st.info("該当する読了ツイートが見つかりませんでした。")
         # 戻る
-        if st.button("← 検索結果に戻る"):
-            to_results_page()
+        if st.button("← 検索結果に戻る", on_click=to_results_page):
+            pass
