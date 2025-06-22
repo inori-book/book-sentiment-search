@@ -13,6 +13,7 @@ st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wi
 @st.cache_data
 def load_data(path: str = "sample07.csv") -> pd.DataFrame:
     df = pd.read_csv(path, dtype={"isbn": str}).fillna("")
+    df.columns = [col.lower() for col in df.columns]  # 列名を小文字に統一
     # ジャンルをリスト化
     df["genres_list"] = df["genre"].str.split(",").apply(lambda lst: [g.strip() for g in lst if g.strip()])
     # Janome で形容詞抽出
