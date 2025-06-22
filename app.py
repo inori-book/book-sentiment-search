@@ -41,7 +41,7 @@ def fetch_openbd(isbn: str) -> dict:
     if not isbn:
         return {}
     
-    api_url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
+    api_url = f"https://api.openbd.jp/get?isbn={isbn}"
     try:
         res = requests.get(api_url)
         res.raise_for_status()
@@ -67,10 +67,11 @@ def fetch_openbd(isbn: str) -> dict:
                     if extent.get("ExtentType") == "11":
                         info["pages"] = extent.get("ExtentValue")
                         break
-        if pd := onix.get("PublishingDetail", {}):
-            if prices := pd.get("Price"):
-                if prices and prices[0]:
-                    info["price"] = prices[0].get("PriceAmount")
+        if ps := onix.get("ProductSupply", {}):
+            if sd := ps.get("SupplyDetail", {}):
+                if prices := sd.get("Price"):
+                    if prices and prices[0]:
+                        info["price"] = prices[0].get("PriceAmount")
         
         if cd := onix.get("CollateralDetail", {}):
             if texts := cd.get("TextContent"):
