@@ -96,29 +96,29 @@ if st.session_state.page == "home":
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
+    if st.button("戻る", on_click=to_home):
+        pass
     st.title("🔎 検索結果ランキング")
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
-        if st.button("← ホームへ戻る"):
-            to_home()
     else:
         for i, row in res.iterrows():
             st.markdown(f"**{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）**")
             if st.button("詳細を見る", key=f"btn_{i}", on_click=to_detail, args=(i,)):
                 pass
-        if st.button("← ホームへ戻る", key="back_home"):
-            to_home()
 
 # ─── 9. 詳細画面 ───────────────────────────────────────
 elif st.session_state.page == "detail":
+    if st.button("戻る", on_click=to_results_page):
+        pass
     res = st.session_state.results
     idx = st.session_state.detail_idx
     if idx is None or idx >= len(res):
         st.error("不正な選択です。")
     else:
         book = res.loc[idx]
-        st.header(f"📖 『{book['title']}』 by {book['author']}")
+        st.header(f"{book['rank']}位：『{book['title']}』／{book['author']}")
         # レーダーチャート
         radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful"]]
         radar_labels = ["エロ","グロ","狂気","超常","耽美","痛み"]
@@ -165,5 +165,3 @@ elif st.session_state.page == "detail":
         # else:
         #     st.info("該当する読了ツイートが見つかりませんでした。")
         # 戻る
-        if st.button("← 検索結果に戻る", on_click=to_results_page):
-            pass
