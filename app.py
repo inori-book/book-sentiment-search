@@ -166,7 +166,7 @@ elif st.session_state.page == "detail":
         book = res.loc[idx]
         st.header(f"{book['rank']}位：『{book['title']}』／{book['author']}")
         
-        openbd = fetch_openbd(book["isbn"])
+        openbd = fetch_openbd(book.get("isbn", ""))
         if openbd.get("cover"):
             st.image(openbd["cover"], use_column_width=True)
         st.write(f"**出版社**: {openbd.get('publisher','—')}")
