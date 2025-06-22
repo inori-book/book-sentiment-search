@@ -65,6 +65,8 @@ def to_results():
         tmp = tmp[tmp["genres_list"].apply(lambda gl: any(g in gl for g in genres))]
     tmp["count"] = tmp["adjectives"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
+    if not res.empty:
+        res["rank"] = res["count"].rank(method="min", ascending=False).astype(int)
     st.session_state.results = res.reset_index(drop=True)
     st.session_state.page = "results"
 
@@ -102,7 +104,7 @@ elif st.session_state.page == "results":
             to_home()
     else:
         for i, row in res.iterrows():
-            st.markdown(f"**{i+1}位：『{row['title']}』／{row['author']}（{row['count']}回）**")
+            st.markdown(f"**{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）**")
             if st.button("詳細を見る", key=f"btn_{i}", on_click=to_detail, args=(i,)):
                 pass
         if st.button("← ホームへ戻る", key="back_home"):
@@ -117,7 +119,6 @@ elif st.session_state.page == "detail":
     else:
         book = res.loc[idx]
         st.header(f"📖 『{book['title']}』 by {book['author']}")
-        st.write(book['review'])
         # レーダーチャート
         radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful"]]
         radar_labels = ["エロ","グロ","狂気","超常","耽美","痛み"]
@@ -125,7 +126,7 @@ elif st.session_state.page == "detail":
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
                 title="読み味レーダーチャート",
-                polar=dict(radialaxis=dict(visible=True, range=[0, 5])),
+                polar=dict(radialaxis=dict(visible=True, range=[0, 5], tickfont=dict(color="#000000"))),
                 showlegend=False
             )
         )
