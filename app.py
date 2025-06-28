@@ -173,29 +173,15 @@ elif st.session_state.page == "results":
         st.warning("該当する本がありませんでした。")
     else:
         for i, row in res.iterrows():
-            # APIから書影・紹介文取得
+            # タイトルをボタンで表示し、クリックで詳細遷移
+            if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）", key=f"title_btn_{i}"):
+                to_detail(i)
+            # 書影・紹介文も表示
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
-            # タイトルをテキストリンク化
-            title_link = f'<a href="javascript:window.location.reload();" onclick="window.parent.postMessage({{detail_idx: {i}}}, '*'); return false;" style="font-weight:bold; font-size:1.1em; text-decoration:underline; color:#3366cc;">{row["rank"]}位：『{row["title"]}』／{row["author"]}（{row["count"]}回）</a>'
-            st.markdown(title_link, unsafe_allow_html=True)
-            # 書影
             if rakuten.get("cover"):
                 st.image(rakuten["cover"], width=120)
-            # 紹介文
             st.write("紹介文")
             st.write(rakuten.get("description", "—"))
-            # タイトルクリックで詳細遷移
-            js = f"""
-            <script>
-            window.addEventListener('message', (event) => {{
-                if (event.data.detail_idx === {i}) {{
-                    window.parent.postMessage({{set_detail_idx: {i}}}, '*');
-                }}
-            }});
-            </script>
-            """
-            st.markdown(js, unsafe_allow_html=True)
-            # 詳細ボタンは削除
 
 # ─── 9. 詳細画面 ───────────────────────────────────────
 elif st.session_state.page == "detail":
