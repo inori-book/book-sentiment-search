@@ -72,11 +72,22 @@ def fetch_rakuten_book(isbn: str) -> dict:
         data = res.json()
         if data.get("Items"):
             item = data["Items"][0]["Item"]
-            # ページ数の補完: pageCountがなければitemCaptionから抽出
-            pages = item.get("pageCount")
-            if not pages and item.get("itemCaption"):
+            # ページ数の補完: itemCaptionから多様なパターンで抽出
+            pages = None
+            if item.get("itemCaption"):
                 import re
-                match = re.search(r'(\d+)\s*[pＰ頁ページ]', item["itemCaption"])
+                caption = item["itemCaption"]
+                # 1. 「256ページ」「256頁」「256p」「256P」「256Ｐ」
+                match = re.search(r'(\d+)\s*(?:p|P|Ｐ|頁|ページ)', caption)
+                # 2. 「全256ページ」「全256頁」
+                if not match:
+                    match = re.search(r'全\s*(\d+)\s*(?:p|P|Ｐ|頁|ページ)', caption)
+                # 3. 「P.256」
+                if not match:
+                    match = re.search(r'P\.?\s*(\d+)', caption)
+                # 4. 「256 ページ」など半角スペース
+                if not match:
+                    match = re.search(r'(\d+)\s+ページ', caption)
                 if match:
                     pages = match.group(1) + "p"
             if not pages:
