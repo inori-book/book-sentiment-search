@@ -5,6 +5,12 @@ from janome.tokenizer import Tokenizer
 from collections import Counter
 import plotly.express as px
 import plotly.graph_objects as go
+import re
+import unicodedata
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide")
@@ -12,7 +18,7 @@ st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wi
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
 @st.cache_data
 def load_data(path: str = "sample07.csv") -> pd.DataFrame:
-    df = pd.read_csv(path, dtype={"isbn": str}).fillna("")
+    df = pd.read_csv(path, dtype={"ISBN": str}).fillna("")
     df.columns = [col.lower() for col in df.columns]  # 列名を小文字に統一
     # ジャンルをリスト化
     df["genres_list"] = df["genre"].str.split(",").apply(lambda lst: [g.strip() for g in lst if g.strip()])
@@ -35,51 +41,52 @@ def load_stopwords(path: str = "stopwords.txt") -> set[str]:
         words = {"ない", "っぽい"}
     return words
 
-@st.cache_data
-def fetch_openbd(isbn: str) -> dict:
-    """OpenBD APIから書籍情報を取得する"""
+def get_rakuten_app_id():
+    return st.secrets.get("RAKUTEN_APP_ID") or os.getenv("RAKUTEN_APP_ID")
+
+def normalize_isbn(isbn_str: str) -> str:
+    """ISBNを正規化する（ハイフンや空白を除去）"""
+    if not isbn_str:
+        return ""
+    # 全角英数字を半角に、数字以外を除去
+    s = unicodedata.normalize("NFKC", isbn_str)
+    return re.sub(r"[^0-9Xx]", "", s)
+
+# 楽天ブックスAPIで書誌情報を取得
+@st.cache_resource(show_spinner=False)
+def fetch_rakuten_book(isbn: str) -> dict:
     if not isbn:
         return {}
-    
-    api_url = f"https://api.openbd.jp/get?isbn={isbn}"
+    normalized_isbn = normalize_isbn(isbn)
+    if not normalized_isbn:
+        return {}
+    url = "https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404"
+    params = {
+        "isbn": normalized_isbn,
+        "applicationId": get_rakuten_app_id(),
+        "format": "json"
+    }
     try:
-        res = requests.get(api_url)
+        res = requests.get(url, params=params)
         res.raise_for_status()
         data = res.json()
-    except requests.exceptions.RequestException:
-        return {}
-
-    if not data or data[0] is None:
-        return {}
-        
-    book_data = data[0]
-    info = {}
-    
-    if summary := book_data.get("summary"):
-        info["cover"] = summary.get("cover")
-        info["publisher"] = summary.get("publisher")
-        info["pubdate"] = summary.get("pubdate")
-
-    if onix := book_data.get("onix"):
-        if dd := onix.get("DescriptiveDetail", {}):
-            if extents := dd.get("Extent"):
-                for extent in extents:
-                    if extent.get("ExtentType") == "11":
-                        info["pages"] = extent.get("ExtentValue")
-                        break
-        if ps := onix.get("ProductSupply", {}):
-            if sd := ps.get("SupplyDetail", {}):
-                if prices := sd.get("Price"):
-                    if prices and prices[0]:
-                        info["price"] = prices[0].get("PriceAmount")
-        
-        if cd := onix.get("CollateralDetail", {}):
-            if texts := cd.get("TextContent"):
-                for text in texts:
-                    if text.get("TextType") == "03":
-                        info["description"] = text.get("Text")
-                        break
-    return info
+        if data.get("Items"):
+            item = data["Items"][0]["Item"]
+            return {
+                "title": item.get("title"),
+                "author": item.get("author"),
+                "publisher": item.get("publisherName"),
+                "pubdate": item.get("salesDate"),
+                "pages": item.get("pageCount") or "—",
+                "price": item.get("itemPrice") if item.get("itemPrice") is not None else "—",
+                "description": item.get("itemCaption") or "—",
+                "cover": item.get("mediumImageUrl") or item.get("largeImageUrl") or item.get("smallImageUrl") or "",
+                "affiliateUrl": item.get("affiliateUrl"),
+                "itemUrl": item.get("itemUrl")
+            }
+    except Exception as e:
+        print(e)
+    return {}
 
 STOPWORDS = load_stopwords()
 all_adjs = sorted({adj for lst in df["adjectives"] for adj in lst})
@@ -168,14 +175,21 @@ elif st.session_state.page == "detail":
         book = res.loc[idx]
         st.header(f"{book['rank']}位：『{book['title']}』／{book['author']}")
         
-        openbd = fetch_openbd(book.get("isbn", ""))
-        if openbd.get("cover"):
-            st.image(openbd["cover"], use_column_width=True)
-        st.write(f"**出版社**: {openbd.get('publisher','—')}")
-        st.write(f"**発行日**: {openbd.get('pubdate','—')}")
-        st.write(f"**ページ数**: {openbd.get('pages','—')}")
-        st.write(f"**定価**: {openbd.get('price','—')} 円")
-        st.write(f"**紹介文**: {openbd.get('description','—')}")
+        rakuten = fetch_rakuten_book(book.get("isbn", ""))
+        # 書影
+        if rakuten.get("cover"):
+            st.image(rakuten["cover"], use_column_width=True)
+        # 商品ページリンク（楽天ブックス）
+        if rakuten.get("affiliateUrl"):
+            st.markdown(f"[楽天ブックスで商品ページを開く]({rakuten['affiliateUrl']})", unsafe_allow_html=True)
+        elif rakuten.get("itemUrl"):
+            st.markdown(f"[楽天ブックスで商品ページを開く]({rakuten['itemUrl']})", unsafe_allow_html=True)
+        # 書誌情報
+        st.write(f"**出版社**: {rakuten.get('publisher','—')}")
+        st.write(f"**発行日**: {rakuten.get('pubdate','—')}")
+        st.write(f"**ページ数**: {rakuten.get('pages','—')}")
+        st.write(f"**定価**: {rakuten.get('price','—')} 円")
+        st.write(f"**紹介文**: {rakuten.get('description','—')}")
 
         # レーダーチャート
         radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful"]]
