@@ -72,12 +72,21 @@ def fetch_rakuten_book(isbn: str) -> dict:
         data = res.json()
         if data.get("Items"):
             item = data["Items"][0]["Item"]
+            # ページ数の補完: pageCountがなければitemCaptionから抽出
+            pages = item.get("pageCount")
+            if not pages and item.get("itemCaption"):
+                import re
+                match = re.search(r'(\d+)\s*[pＰ頁ページ]', item["itemCaption"])
+                if match:
+                    pages = match.group(1) + "p"
+            if not pages:
+                pages = "—"
             return {
                 "title": item.get("title"),
                 "author": item.get("author"),
                 "publisher": item.get("publisherName"),
                 "pubdate": item.get("salesDate"),
-                "pages": item.get("pageCount") or "—",
+                "pages": pages,
                 "price": item.get("itemPrice") if item.get("itemPrice") is not None else "—",
                 "description": item.get("itemCaption") or "—",
                 "cover": item.get("mediumImageUrl") or item.get("largeImageUrl") or item.get("smallImageUrl") or "",
