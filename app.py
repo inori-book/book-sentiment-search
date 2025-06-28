@@ -72,32 +72,11 @@ def fetch_rakuten_book(isbn: str) -> dict:
         data = res.json()
         if data.get("Items"):
             item = data["Items"][0]["Item"]
-            # ページ数の補完: itemCaptionから多様なパターンで抽出
-            pages = None
-            if item.get("itemCaption"):
-                import re
-                caption = item["itemCaption"]
-                # 1. 「256ページ」「256頁」「256p」「256P」「256Ｐ」
-                match = re.search(r'(\d+)\s*(?:p|P|Ｐ|頁|ページ)', caption)
-                # 2. 「全256ページ」「全256頁」
-                if not match:
-                    match = re.search(r'全\s*(\d+)\s*(?:p|P|Ｐ|頁|ページ)', caption)
-                # 3. 「P.256」
-                if not match:
-                    match = re.search(r'P\.?\s*(\d+)', caption)
-                # 4. 「256 ページ」など半角スペース
-                if not match:
-                    match = re.search(r'(\d+)\s+ページ', caption)
-                if match:
-                    pages = match.group(1) + "p"
-            if not pages:
-                pages = "—"
             return {
                 "title": item.get("title"),
                 "author": item.get("author"),
                 "publisher": item.get("publisherName"),
                 "pubdate": item.get("salesDate"),
-                "pages": pages,
                 "price": item.get("itemPrice") if item.get("itemPrice") is not None else "—",
                 "description": item.get("itemCaption") or "—",
                 "cover": item.get("mediumImageUrl") or item.get("largeImageUrl") or item.get("smallImageUrl") or "",
@@ -126,18 +105,33 @@ if "raw_input" not in st.session_state:
 if "raw_select" not in st.session_state:
     st.session_state.raw_select = ""
 
-# ─── 5. サイドバー: ジャンル絞り込み ─────────────────────────────
-st.sidebar.header("タグで絞り込み")
+# ─── 5. サイドバー: ジャンル・スペック絞り込み ─────────────────────────────
+st.sidebar.header("絞り込み")
+st.sidebar.subheader("ジャンル")
 unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
-genres = st.sidebar.multiselect("ジャンルを選択", options=unique_genres, default=[])
+genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=[])
+
+st.sidebar.subheader("スペック")
+spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful"]
+spec_labels = ["エロ", "グロ", "狂気", "超常", "耽美", "痛み"]
+if "spec_ranges" not in st.session_state:
+    st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+for k, label in zip(spec_keys, spec_labels):
+    st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, (0, 5), key=f"slider_{k}")
 
 # ─── 6. ページ遷移用関数 ─────────────────────────────────────
 def to_results():
     adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
     tmp = df.copy()
+    # ジャンル絞り込み
     if genres:
         tmp = tmp[tmp["genres_list"].apply(lambda gl: any(g in gl for g in genres))]
+    # スペック範囲絞り込み
+    for k in spec_keys:
+        min_v, max_v = st.session_state.spec_ranges[k]
+        tmp = tmp[(tmp[k] >= min_v) & (tmp[k] <= max_v)]
+    # 形容詞絞り込み
     tmp["count"] = tmp["adjectives"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
     if not res.empty:
@@ -179,12 +173,34 @@ elif st.session_state.page == "results":
         st.warning("該当する本がありませんでした。")
     else:
         for i, row in res.iterrows():
-            st.markdown(f"**{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）**")
-            if st.button("詳細を見る", key=f"btn_{i}", on_click=to_detail, args=(i,)):
-                pass
+            # APIから書影・紹介文取得
+            rakuten = fetch_rakuten_book(row.get("isbn", ""))
+            # タイトルをテキストリンク化
+            title_link = f'<a href="javascript:window.location.reload();" onclick="window.parent.postMessage({{detail_idx: {i}}}, '*'); return false;" style="font-weight:bold; font-size:1.1em; text-decoration:underline; color:#3366cc;">{row["rank"]}位：『{row["title"]}』／{row["author"]}（{row["count"]}回）</a>'
+            st.markdown(title_link, unsafe_allow_html=True)
+            # 書影
+            if rakuten.get("cover"):
+                st.image(rakuten["cover"], width=120)
+            # 紹介文
+            st.write("紹介文")
+            st.write(rakuten.get("description", "—"))
+            # タイトルクリックで詳細遷移
+            js = f"""
+            <script>
+            window.addEventListener('message', (event) => {{
+                if (event.data.detail_idx === {i}) {{
+                    window.parent.postMessage({{set_detail_idx: {i}}}, '*');
+                }}
+            }});
+            </script>
+            """
+            st.markdown(js, unsafe_allow_html=True)
+            # 詳細ボタンは削除
 
 # ─── 9. 詳細画面 ───────────────────────────────────────
 elif st.session_state.page == "detail":
+    # ページトップに強制スクロール
+    st.markdown('<script>window.scrollTo(0,0);</script>', unsafe_allow_html=True)
     if st.button("戻る", on_click=to_results_page):
         pass
     res = st.session_state.results
@@ -194,21 +210,21 @@ elif st.session_state.page == "detail":
     else:
         book = res.loc[idx]
         st.header(f"{book['rank']}位：『{book['title']}』／{book['author']}")
-        
         rakuten = fetch_rakuten_book(book.get("isbn", ""))
-        # 書影
-        cover_url = rakuten.get("cover")
-        if cover_url:
-            st.image(cover_url, width=300)
-        # 商品ページリンク（楽天ブックス）
-        if rakuten.get("affiliateUrl"):
-            st.markdown(f"[楽天ブックスで商品ページを開く]({rakuten['affiliateUrl']})", unsafe_allow_html=True)
-        elif rakuten.get("itemUrl"):
-            st.markdown(f"[楽天ブックスで商品ページを開く]({rakuten['itemUrl']})", unsafe_allow_html=True)
+        # 書影とボタンを横並びで表示
+        col1, col2 = st.columns([1,2])
+        with col1:
+            cover_url = rakuten.get("cover")
+            if cover_url:
+                st.image(cover_url, width=100)
+        with col2:
+            btn1 = f'<a href="{rakuten.get("affiliateUrl") or rakuten.get("itemUrl")}" target="_blank" style="display:inline-block;padding:16px 32px;background:#FFC107;color:#222;font-weight:bold;border-radius:8px;text-decoration:none;margin-bottom:12px;">商品ページを開く（楽天ブックス）<span style="margin-left:8px;">&#x1F517;</span></a>'
+            btn2 = '<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" style="display:inline-block;padding:16px 32px;background:#FFC107;color:#222;font-weight:bold;border-radius:8px;text-decoration:none;">感想を投稿する（Googleフォーム）<span style="margin-left:8px;">&#x1F517;</span></a>'
+            st.markdown(btn1, unsafe_allow_html=True)
+            st.markdown(btn2, unsafe_allow_html=True)
         # 書誌情報
         st.write(f"**出版社**: {rakuten.get('publisher','—')}")
         st.write(f"**発行日**: {rakuten.get('pubdate','—')}")
-        st.write(f"**ページ数**: {rakuten.get('pages','—')}")
         st.write(f"**定価**: {rakuten.get('price','—')} 円")
         st.write(f"**紹介文**: {rakuten.get('description','—')}")
 
