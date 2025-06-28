@@ -177,8 +177,9 @@ elif st.session_state.page == "detail":
         
         rakuten = fetch_rakuten_book(book.get("isbn", ""))
         # 書影
-        if rakuten.get("cover"):
-            st.image(rakuten["cover"], use_column_width=True)
+        cover_url = rakuten.get("cover")
+        if cover_url:
+            st.image(cover_url, width=300)
         # 商品ページリンク（楽天ブックス）
         if rakuten.get("affiliateUrl"):
             st.markdown(f"[楽天ブックスで商品ページを開く]({rakuten['affiliateUrl']})", unsafe_allow_html=True)
@@ -198,7 +199,15 @@ elif st.session_state.page == "detail":
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
                 title="読み味レーダーチャート",
-                polar=dict(radialaxis=dict(visible=True, range=[0, 5], tickfont=dict(color="#000000"))),
+                polar=dict(
+                    radialaxis=dict(
+                        visible=True,
+                        range=[0, 5],
+                        showticklabels=False,  # 数字を非表示
+                        showline=False,        # 軸線を非表示
+                        ticks=''               # 目盛り線も非表示
+                    )
+                ),
                 showlegend=False
             )
         )
