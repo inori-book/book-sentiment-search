@@ -147,18 +147,13 @@ if "spec_ranges" not in st.session_state:
 for k, label in zip(spec_keys, spec_labels):
     st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, (0, 5), key=f"slider_{k}")
 
-# スマホでサイドバーをデフォルトで格納し、スライダーに余白を追加するカスタムCSS
+# サイドバー開閉ボタンを常時表示するCSSのみ適用
 st.markdown('''
     <style>
-    /* スマホでサイドバーをデフォルトで閉じる */
-    @media (max-width: 900px) {
-        section[data-testid="stSidebar"] {
-            transform: translateX(-100%);
-        }
-        /* サイドバー開閉ボタンを表示 */
-        button[aria-label="Open sidebar"] {
-            display: block;
-        }
+    button[aria-label="Open sidebar"] {
+        display: block !important;
+        opacity: 1 !important;
+        z-index: 1001 !important;
     }
     /* スペックスライダーの余白調整 */
     div[data-baseweb="slider"] {
@@ -289,19 +284,20 @@ elif st.session_state.page == "detail":
         cnt = Counter(book['keywords'])
         for sw in STOPWORDS:
             cnt.pop(sw, None)
+        # 形容詞・形容動詞・抽出ワードすべてをカウントしTOP5を表示
         top5 = cnt.most_common(5)
         if top5:
-            df5 = pd.DataFrame(top5, columns=["形容詞","回数"])
+            df5 = pd.DataFrame(top5, columns=["ワード","回数"])
             fig_bar = go.Figure(
-                data=[go.Bar(x=df5["形容詞"], y=df5["回数"])],
+                data=[go.Bar(x=df5["ワード"], y=df5["回数"])],
                 layout=go.Layout(
-                    title="頻出形容詞TOP5",
+                    title="頻出ワードTOP5",
                     yaxis=dict(tickmode='linear', dtick=1)
                 )
             )
             st.plotly_chart(fig_bar, use_container_width=True)
         else:
-            st.info("有効な形容詞が見つかりませんでした。")
+            st.info("有効なワードが見つかりませんでした。")
         # Twitter API連携部分は初期スコープ外のためコメントアウト
         # st.markdown("## 🐦 読了ツイート（最新5件）")
         # tweets = fetch_read_tweets(book['title'])
