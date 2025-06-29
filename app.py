@@ -119,6 +119,27 @@ if "spec_ranges" not in st.session_state:
 for k, label in zip(spec_keys, spec_labels):
     st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, (0, 5), key=f"slider_{k}")
 
+# スマホでサイドバーをデフォルトで格納し、スライダーに余白を追加するカスタムCSS
+st.markdown('''
+    <style>
+    /* スマホでサイドバーをデフォルトで閉じる */
+    @media (max-width: 900px) {
+        section[data-testid="stSidebar"] {
+            transform: translateX(-100%);
+        }
+        /* サイドバー開閉ボタンを表示 */
+        button[aria-label="Open sidebar"] {
+            display: block;
+        }
+    }
+    /* スペックスライダーの余白調整 */
+    div[data-baseweb="slider"] {
+        margin-left: 8px !important;
+        margin-right: 8px !important;
+    }
+    </style>
+''', unsafe_allow_html=True)
+
 # ─── 6. ページ遷移用関数 ─────────────────────────────────────
 def to_results():
     adj = st.session_state.raw_select or st.session_state.raw_input.strip()
@@ -173,7 +194,7 @@ elif st.session_state.page == "results":
         st.warning("該当する本がありませんでした。")
     else:
         for i, row in res.iterrows():
-            # タイトルをボタンで表示し、クリックで詳細遷移
+            # タイトルをボタンで表示し、クリックで詳細遷移（シングルクリックで動作）
             if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）", key=f"title_btn_{i}"):
                 to_detail(i)
             # 書影・紹介文も表示
@@ -251,9 +272,6 @@ elif st.session_state.page == "detail":
             st.plotly_chart(fig_bar, use_container_width=True)
         else:
             st.info("有効な形容詞が見つかりませんでした。")
-        # Googleフォームリンク
-        st.markdown("---")
-        st.markdown("[✏️ あなたの感想を投稿する](https://forms.gle/Eh3fYtnzSHmN3KMSA)")
         # Twitter API連携部分は初期スコープ外のためコメントアウト
         # st.markdown("## 🐦 読了ツイート（最新5件）")
         # tweets = fetch_read_tweets(book['title'])
