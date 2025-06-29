@@ -16,17 +16,43 @@ load_dotenv()
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide")
 
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
+# 抽出対象の品詞をリスト化（将来的に増やしやすい形）
+POS_TARGETS = ["形容詞", "形容動詞"]
+
+@st.cache_data
+def load_abstractwords(path: str = "abstractwords.txt") -> set[str]:
+    try:
+        with open(path, encoding="utf-8") as f:
+            words = {line.strip() for line in f if line.strip() and not line.startswith("#")}
+    except FileNotFoundError:
+        words = set()
+    return words
+
+ABSTRACTWORDS = load_abstractwords()
+
+def extract_target_words(text: str) -> list[str]:
+    tokens = tokenizer.tokenize(text)
+    results = []
+    for t in tokens:
+        pos = t.part_of_speech.split(",")[0]
+        if pos in POS_TARGETS:
+            results.append(t.base_form)
+    # 文中に抽出ワードリストがあれば必ず抽出
+    for word in ABSTRACTWORDS:
+        if word in text:
+            results.append(word)
+    return results
+
 @st.cache_data
 def load_data(path: str = "sample07.csv") -> pd.DataFrame:
     df = pd.read_csv(path, dtype={"ISBN": str}).fillna("")
     df.columns = [col.lower() for col in df.columns]  # 列名を小文字に統一
     # ジャンルをリスト化
     df["genres_list"] = df["genre"].str.split(",").apply(lambda lst: [g.strip() for g in lst if g.strip()])
-    # Janome で形容詞抽出
+    # Janome で形容詞・形容動詞抽出
+    global tokenizer
     tokenizer = Tokenizer()
-    def extract_adjs(text: str) -> list[str]:
-        return [t.base_form for t in tokenizer.tokenize(text) if t.part_of_speech.startswith("形容詞")]
-    df["adjectives"] = df["review"].apply(extract_adjs)
+    df["keywords"] = df["review"].apply(extract_target_words)
     return df
 
 df = load_data()
@@ -90,8 +116,8 @@ def fetch_rakuten_book(isbn: str) -> dict:
     return {}
 
 STOPWORDS = load_stopwords()
-all_adjs = sorted({adj for lst in df["adjectives"] for adj in lst})
-suggestions = [w for w in all_adjs if w not in STOPWORDS]
+all_keywords = sorted({kw for lst in df["keywords"] for kw in lst})
+suggestions = [w for w in all_keywords if w not in STOPWORDS]
 
 # ─── 4. セッションステート初期化 ─────────────────────────────────
 if "page" not in st.session_state:
@@ -155,7 +181,7 @@ def to_results():
         min_v, max_v = st.session_state.spec_ranges[k]
         tmp = tmp[(tmp[k] >= min_v) & (tmp[k] <= max_v)]
     # 形容詞絞り込み
-    tmp["count"] = tmp["adjectives"].apply(lambda lst: lst.count(adj))
+    tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
     if not res.empty:
         res["rank"] = res["count"].rank(method="min", ascending=False).astype(int)
@@ -260,7 +286,7 @@ elif st.session_state.page == "detail":
         )
         st.plotly_chart(fig_radar, use_container_width=True)
         # 棒グラフ TOP5
-        cnt = Counter(book['adjectives'])
+        cnt = Counter(book['keywords'])
         for sw in STOPWORDS:
             cnt.pop(sw, None)
         top5 = cnt.most_common(5)
