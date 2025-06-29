@@ -72,6 +72,8 @@ def fetch_rakuten_book(isbn: str) -> dict:
         data = res.json()
         if data.get("Items"):
             item = data["Items"][0]["Item"]
+            # 書影はlarge→medium→smallの順で最初に見つかったもの
+            cover_url = item.get("largeImageUrl") or item.get("mediumImageUrl") or item.get("smallImageUrl") or ""
             return {
                 "title": item.get("title"),
                 "author": item.get("author"),
@@ -79,7 +81,7 @@ def fetch_rakuten_book(isbn: str) -> dict:
                 "pubdate": item.get("salesDate"),
                 "price": item.get("itemPrice") if item.get("itemPrice") is not None else "—",
                 "description": item.get("itemCaption") or "—",
-                "cover": item.get("mediumImageUrl") or item.get("largeImageUrl") or item.get("smallImageUrl") or "",
+                "cover": cover_url,
                 "affiliateUrl": item.get("affiliateUrl"),
                 "itemUrl": item.get("itemUrl")
             }
@@ -197,12 +199,14 @@ elif st.session_state.page == "results":
             # タイトルをボタンで表示し、クリックで詳細遷移（シングルクリックで動作）
             if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）", key=f"title_btn_{i}"):
                 to_detail(i)
-            # 書影・紹介文も表示
+                st.experimental_rerun()
+            # 書影も表示
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
             if rakuten.get("cover"):
                 st.image(rakuten["cover"], width=120)
-            st.write("紹介文")
-            st.write(rakuten.get("description", "—"))
+            # 紹介文をトグル展開
+            with st.expander("▼作品紹介"):
+                st.write(rakuten.get("description", "—"))
 
 # ─── 9. 詳細画面 ───────────────────────────────────────
 elif st.session_state.page == "detail":
