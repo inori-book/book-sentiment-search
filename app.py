@@ -199,7 +199,7 @@ elif st.session_state.page == "results":
             # タイトルをボタンで表示し、クリックで詳細遷移（シングルクリックで動作）
             if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）", key=f"title_btn_{i}"):
                 to_detail(i)
-                st.experimental_rerun()
+                st.rerun()
             # 書影も表示
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
             if rakuten.get("cover"):
