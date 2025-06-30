@@ -9,6 +9,8 @@ import re
 import unicodedata
 from dotenv import load_dotenv
 import os
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 load_dotenv()
 
@@ -280,22 +282,17 @@ elif st.session_state.page == "detail":
             )
         )
         st.plotly_chart(fig_radar, use_container_width=True)
-        # 棒グラフ TOP5
+        # ワードクラウド表示
         cnt = Counter(book['keywords'])
         for sw in STOPWORDS:
             cnt.pop(sw, None)
-        # 形容詞・形容動詞・抽出ワードすべてをカウントしTOP5を表示
-        top5 = cnt.most_common(5)
-        if top5:
-            df5 = pd.DataFrame(top5, columns=["ワード","回数"])
-            fig_bar = go.Figure(
-                data=[go.Bar(x=df5["ワード"], y=df5["回数"])],
-                layout=go.Layout(
-                    title="頻出ワードTOP5",
-                    yaxis=dict(tickmode='linear', dtick=1)
-                )
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
+        if cnt:
+            # ワードクラウド生成
+            wc = WordCloud(font_path='ipag.ttf', width=600, height=400, background_color='white', colormap='tab20').generate_from_frequencies(dict(cnt))
+            fig, ax = plt.subplots(figsize=(6, 4))
+            ax.imshow(wc, interpolation='bilinear')
+            ax.axis('off')
+            st.pyplot(fig)
         else:
             st.info("有効なワードが見つかりませんでした。")
         # Twitter API連携部分は初期スコープ外のためコメントアウト
