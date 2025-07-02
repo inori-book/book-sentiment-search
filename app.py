@@ -213,21 +213,29 @@ if st.session_state.page == "home":
 elif st.session_state.page == "results":
     if st.button("戻る", on_click=to_home):
         pass
+    # 検索窓をランキング画面上部に常時表示
+    st.markdown("## 🔍 再検索")
+    st.session_state.raw_input = st.text_input(
+        "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_results"
+    )
+    filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
+    st.session_state.raw_select = st.selectbox(
+        "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_results"
+    )
+    if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
+        pass
     st.title("🔎 検索結果ランキング")
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
     else:
         for i, row in res.iterrows():
-            # タイトルをボタンで表示し、クリックで詳細遷移（シングルクリックで動作）
             if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）", key=f"title_btn_{i}"):
                 to_detail(i)
                 st.rerun()
-            # 書影も表示
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
             if rakuten.get("cover"):
                 st.image(rakuten["cover"], width=120)
-            # 紹介文をトグル展開
             with st.expander("▼作品紹介"):
                 st.write(rakuten.get("description", "—"))
 
@@ -281,13 +289,14 @@ elif st.session_state.page == "detail":
                 showlegend=False
             )
         )
-        st.plotly_chart(fig_radar, use_container_width=True)
+        st.plotly_chart(fig_radar, use_container_width=True, config={"staticPlot": True})
         # ワードクラウド表示
         cnt = Counter(book['keywords'])
         for sw in STOPWORDS:
             cnt.pop(sw, None)
         if cnt:
             # ワードクラウド生成
+            st.markdown("### 感想ワードクラウド")
             wc = WordCloud(font_path='ipag.ttf', width=600, height=400, background_color='white', colormap='tab20').generate_from_frequencies(dict(cnt))
             fig, ax = plt.subplots(figsize=(6, 4))
             ax.imshow(wc, interpolation='bilinear')
