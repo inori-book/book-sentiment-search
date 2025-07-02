@@ -225,6 +225,30 @@ elif st.session_state.page == "results":
     if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
         pass
     st.title("🔎 検索結果ランキング")
+    # パンくずリストをタイトル直下に表示（ホームはテキストリンク風ボタン）
+    col1, col2 = st.columns([1, 10])
+    with col1:
+        btn = st.button("ホーム", key="breadcrumb_home")
+        st.markdown(
+            """
+            <style>
+            div[data-testid="stButton"] button {
+                background: none !important;
+                color: #1a73e8 !important;
+                text-decoration: underline !important;
+                border: none !important;
+                padding: 0 !important;
+                font-size: 1em !important;
+                font-weight: normal !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        if btn:
+            to_home()
+    with col2:
+        st.markdown(f"> 「{st.session_state.adj}」の検索結果")
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
