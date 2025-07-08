@@ -136,18 +136,18 @@ if "raw_select" not in st.session_state:
     st.session_state.raw_select = ""
 
 # ─── 5. サイドバー: ジャンル・スペック絞り込み ─────────────────────────────
-st.sidebar.header("絞り込み")
-st.sidebar.subheader("ジャンル")
-unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
-genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=[])
-
-st.sidebar.subheader("スペック")
-spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful"]
-spec_labels = ["エロ", "グロ", "狂気", "超常", "耽美", "痛み"]
-if "spec_ranges" not in st.session_state:
-    st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
-for k, label in zip(spec_keys, spec_labels):
-    st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, (0, 5), key=f"slider_{k}")
+# st.sidebar.header("絞り込み")
+# st.sidebar.subheader("ジャンル")
+# unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
+# genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=[])
+#
+# st.sidebar.subheader("スペック")
+# spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful"]
+# spec_labels = ["エロ", "グロ", "狂気", "超常", "耽美", "痛み"]
+# if "spec_ranges" not in st.session_state:
+#     st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+# for k, label in zip(spec_keys, spec_labels):
+#     st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, (0, 5), key=f"slider_{k}")
 
 # サイドバー開閉ボタンを常時表示するCSSのみ適用
 st.markdown('''
@@ -297,9 +297,9 @@ if st.session_state.page == "home":
     ''', unsafe_allow_html=True)
 
     # タイトル
-    st.markdown('<div class="custom-title">📚 感想形容詞で探す本<span class="colon">：</span>アプリ</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-title">YOMIAJI <span class="colon">:</span> Horror</div>', unsafe_allow_html=True)
     # リード文
-    st.markdown('<div class="custom-lead">読み味から本を探す、新しい読書体験。</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-lead">読み味から本が検索できるサービスです。<br>怖くて耽美でインモラルな本が探せます。</div>', unsafe_allow_html=True)
 
     # 検索フォーム（横並び）
     col1, col2 = st.columns(2, gap="small")
@@ -308,7 +308,7 @@ if st.session_state.page == "home":
         st.session_state.raw_input = st.text_area(
             "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
             placeholder="例：美しい、切ない…",
-            height=60,
+            height=70,
             label_visibility="collapsed"
         )
     with col2:
@@ -348,7 +348,7 @@ elif st.session_state.page == "results":
     )
     if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
         pass
-    st.title("🔎 検索結果ランキング")
+    st.title("�� 検索結果ランキング")
     # パンくずリストをタイトル直下に表示（ホームはテキストリンク風ボタン）
     col1, col2 = st.columns([1, 10])
     with col1:
