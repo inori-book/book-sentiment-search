@@ -197,17 +197,141 @@ def to_results_page():
 
 # ─── 7. ホーム画面 ───────────────────────────────────────
 if st.session_state.page == "home":
-    st.title("📚 感想形容詞で探す本アプリ")
-    st.write("感想に登場する形容詞から本を検索します。")
-    st.session_state.raw_input = st.text_input(
-        "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input"
-    )
-    filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
-    st.session_state.raw_select = st.selectbox(
-        "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_box"
-    )
-    if st.button("🔍 検索", on_click=to_results):
-        pass
+    # カスタムCSSで背景・フォント・色・余白などを調整
+    st.markdown(f'''
+        <style>
+        /* 背景画像＋黒レイヤー */
+        .stApp {{
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('background.png');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+        }}
+        /* 全体幅375px中央寄せ */
+        div[data-testid="stVerticalBlock"] > div:first-child {{
+            max-width: 375px;
+            margin: 0 auto;
+            background: transparent;
+        }}
+        /* タイトル */
+        .custom-title {{
+            font-size: 30px !important;
+            font-weight: bold !important;
+            color: #FFFFFF !important;
+            padding: 84px 10px 10px 10px !important;
+            letter-spacing: 0.02em;
+        }}
+        .custom-title span.colon {{
+            color: #FF9500 !important;
+        }}
+        /* リード文・下部テキスト */
+        .custom-lead, .custom-bottom1, .custom-bottom2 {{
+            font-size: 16px !important;
+            color: #FFFFFF !important;
+            padding: 10px !important;
+        }}
+        .custom-bottom1 {{
+            padding-top: 0 !important;
+        }}
+        .custom-bottom2 {{
+            padding-top: 0 !important;
+        }}
+        /* 検索フォームラベル */
+        .custom-label {{
+            font-size: 14px !important;
+            color: #FFFFFF !important;
+            padding: 10px 10px 0 10px !important;
+        }}
+        /* テキストエリア・プルダウン */
+        .custom-input, .custom-select {{
+            width: 167px !important;
+            height: 88px !important;
+            padding: 10px !important;
+            font-size: 14px !important;
+            color: #FFFFFF !important;
+            background: rgba(0,0,0,0.4) !important;
+            border-radius: 8px !important;
+            border: 1px solid #94A3B8 !important;
+            margin: 0 5px 0 0 !important;
+        }}
+        /* プレースホルダー色 */
+        input::placeholder, textarea::placeholder, .custom-select option:disabled {{
+            color: #94A3B8 !important;
+            opacity: 1 !important;
+        }}
+        /* 検索ボタン */
+        .custom-search-btn button {{
+            width: 100%;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: #FFFFFF !important;
+            background: #FF9500 !important;
+            border-radius: 8px !important;
+            border: none !important;
+            padding: 16px 0 !important;
+            margin: 20px 0 20px 0 !important;
+        }}
+        /* 区切り線 */
+        .custom-divider {{
+            width: 355px;
+            height: 1px;
+            background: #FFFFFF;
+            opacity: 0.3;
+            margin: 116px 10px 10px 10px !important;
+        }}
+        /* Googleフォームボタン */
+        .custom-gform-btn a {{
+            display: block;
+            width: 100%;
+            text-align: center;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: #FFFFFF !important;
+            background: #FF9500 !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            padding: 16px 0 !important;
+            margin: 20px 10px 10px 10px !important;
+        }}
+        </style>
+    ''', unsafe_allow_html=True)
+
+    # タイトル
+    st.markdown('<div class="custom-title">📚 感想形容詞で探す本<span class="colon">：</span>アプリ</div>', unsafe_allow_html=True)
+    # リード文
+    st.markdown('<div class="custom-lead">読み味から本を探す、新しい読書体験。</div>', unsafe_allow_html=True)
+
+    # 検索フォーム（横並び）
+    col1, col2 = st.columns(2, gap="small")
+    with col1:
+        st.markdown('<div class="custom-label">フリーテキストで検索</div>', unsafe_allow_html=True)
+        st.session_state.raw_input = st.text_area(
+            "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
+            placeholder="例：美しい、切ない…",
+            height=60,
+            label_visibility="collapsed"
+        )
+    with col2:
+        st.markdown('<div class="custom-label">候補から検索</div>', unsafe_allow_html=True)
+        filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
+        st.session_state.raw_select = st.selectbox(
+            "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_box",
+            placeholder="形容詞を選択",
+            label_visibility="collapsed"
+        )
+    # 検索ボタン
+    with st.container():
+        st.markdown('<div class="custom-search-btn">', unsafe_allow_html=True)
+        if st.button("🔍 検索", on_click=to_results, key="search_btn_home"):
+            pass
+        st.markdown('</div>', unsafe_allow_html=True)
+    # 区切り線
+    st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
+    # 下部テキスト
+    st.markdown('<div class="custom-bottom1">あなたが読んだ本の感想を投稿してください</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
+    # Googleフォームボタン
+    st.markdown('<div class="custom-gform-btn"><a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank">感想を投稿する（Googleフォーム）</a></div>', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
