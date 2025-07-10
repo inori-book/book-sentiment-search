@@ -201,13 +201,13 @@ if st.session_state.page == "home":
     st.markdown(f'''
         <style>
         /* 背景画像＋黒レイヤー */
-        body {
+        body {{
             position: relative;
             min-height: 100vh;
             background: url('background.png') no-repeat center center fixed;
             background-size: cover;
-        }
-        body::before {
+        }}
+        body::before {{
             content: "";
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -215,12 +215,12 @@ if st.session_state.page == "home":
             background: rgba(0,0,0,0.2);
             z-index: 0;
             pointer-events: none;
-        }
+        }}
         /* メインコンテンツを前面に */
-        .main, .block-container, .css-18e3th9, .css-1d391kg {
+        .main, .block-container, .css-18e3th9, .css-1d391kg {{
             position: relative;
             z-index: 1;
-        }
+        }}
         /* 全体幅375px中央寄せ */
         div[data-testid="stVerticalBlock"] > div:first-child {{
             max-width: 375px;
@@ -274,7 +274,7 @@ if st.session_state.page == "home":
             opacity: 1 !important;
         }}
         /* 検索ボタン */
-        .custom-search-btn button {
+        .custom-search-btn button {{
             width: 100%;
             font-size: 16px !important;
             font-weight: bold !important;
@@ -284,7 +284,7 @@ if st.session_state.page == "home":
             border: none !important;
             padding: 16px 0 !important;
             margin: 20px 10px 20px 10px !important;
-        }
+        }}
         /* 区切り線 */
         .custom-divider {{
             width: 355px;
