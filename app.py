@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 load_dotenv()
 
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
-st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide")
+st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed", theme="light")
 
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
 # 抽出対象の品詞をリスト化（将来的に増やしやすい形）
@@ -201,14 +201,14 @@ if st.session_state.page == "home":
     st.markdown(f'''
         <style>
         /* 背景画像＋黒レイヤー */
-        .stApp, body {{
-            position: relative;
-            min-height: 100vh;
-            background: url('/background.png'), url('background.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+        .stApp {{
+            position: relative !important;
+            min-height: 100vh !important;
+            background: url('/background.png'), url('background.png') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            background-attachment: fixed !important;
         }}
         .stApp::before, body::before {{
             content: "";
@@ -276,11 +276,10 @@ if st.session_state.page == "home":
             color: #94A3B8 !important;
             opacity: 1 !important;
         }}
-        /* 共通ボタンデザイン */
-        .custom-orange-btn {{
-            display: block;
-            width: 100%;
-            text-align: center;
+        /* 共通ボタンデザインをstButtonに強制適用 */
+        div.stButton > button {{
+            width: 100% !important;
+            text-align: center !important;
             font-size: 16px !important;
             font-weight: bold !important;
             color: #000000 !important;
@@ -290,7 +289,7 @@ if st.session_state.page == "home":
             padding: 16px 0 !important;
             margin: 20px 10px 20px 10px !important;
             border: none !important;
-            cursor: pointer;
+            cursor: pointer !important;
         }}
         /* 区切り線 */
         .custom-divider {{
@@ -326,21 +325,9 @@ if st.session_state.page == "home":
             placeholder="形容詞を選択",
             label_visibility="collapsed"
         )
-    # 検索ボタン（HTML+CSSで実装）
-    import streamlit.components.v1 as components
-    search_btn_html = '''
-    <form method="post">
-        <button type="submit" name="search" class="custom-orange-btn">検索</button>
-    </form>
-    '''
-    if 'search_btn_clicked' not in st.session_state:
-        st.session_state['search_btn_clicked'] = False
-    search_clicked = st.session_state.get('search_btn_clicked', False)
-    if st.experimental_get_query_params().get('search') or search_clicked:
-        st.session_state['search_btn_clicked'] = False
-        to_results()
-        st.experimental_rerun()
-    components.html(search_btn_html, height=70)
+    # 検索ボタン（st.buttonのまま、CSSで見た目統一）
+    if st.button("検索", on_click=to_results, key="search_btn_home"):
+        pass
     # 区切り線
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
     # 下部テキスト
