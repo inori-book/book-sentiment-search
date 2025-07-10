@@ -201,12 +201,26 @@ if st.session_state.page == "home":
     st.markdown(f'''
         <style>
         /* 背景画像＋黒レイヤー */
-        .stApp {{
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('background.png');
-            background-size: cover;
-            background-position: center;
+        body {
+            position: relative;
             min-height: 100vh;
-        }}
+            background: url('background.png') no-repeat center center fixed;
+            background-size: cover;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.2);
+            z-index: 0;
+            pointer-events: none;
+        }
+        /* メインコンテンツを前面に */
+        .main, .block-container, .css-18e3th9, .css-1d391kg {
+            position: relative;
+            z-index: 1;
+        }
         /* 全体幅375px中央寄せ */
         div[data-testid="stVerticalBlock"] > div:first-child {{
             max-width: 375px;
@@ -260,17 +274,17 @@ if st.session_state.page == "home":
             opacity: 1 !important;
         }}
         /* 検索ボタン */
-        .custom-search-btn button {{
+        .custom-search-btn button {
             width: 100%;
             font-size: 16px !important;
             font-weight: bold !important;
-            color: #FFFFFF !important;
+            color: #000000 !important;
             background: #FF9500 !important;
             border-radius: 8px !important;
             border: none !important;
             padding: 16px 0 !important;
-            margin: 20px 0 20px 0 !important;
-        }}
+            margin: 20px 10px 20px 10px !important;
+        }
         /* 区切り線 */
         .custom-divider {{
             width: 355px;
@@ -286,7 +300,7 @@ if st.session_state.page == "home":
             text-align: center;
             font-size: 16px !important;
             font-weight: bold !important;
-            color: #FFFFFF !important;
+            color: #000000 !important;
             background: #FF9500 !important;
             border-radius: 8px !important;
             text-decoration: none !important;
@@ -322,7 +336,7 @@ if st.session_state.page == "home":
     # 検索ボタン
     with st.container():
         st.markdown('<div class="custom-search-btn">', unsafe_allow_html=True)
-        if st.button("🔍 検索", on_click=to_results, key="search_btn_home"):
+        if st.button("検索", on_click=to_results, key="search_btn_home"):
             pass
         st.markdown('</div>', unsafe_allow_html=True)
     # 区切り線
@@ -331,7 +345,7 @@ if st.session_state.page == "home":
     st.markdown('<div class="custom-bottom1">あなたが読んだ本の感想を投稿してください</div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
     # Googleフォームボタン
-    st.markdown('<div class="custom-gform-btn"><a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank">感想を投稿する（Googleフォーム）</a></div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-gform-btn"><a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank">Googleフォーム</a></div>', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
