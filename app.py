@@ -26,19 +26,36 @@ st.markdown('''
     background-size: cover !important;
     background-position: center !important;
   }
-  .btn {
-    display: inline-block;
-    background-color: #FFA500;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
+  .custom-btn {
+    display: block;
+    width: 355px;
+    max-width: 100%;
+    margin: 20px auto;
+    background: #FFA500;
+    color: #000;
     font-weight: bold;
+    font-size: 16px;
+    border-radius: 8px;
     text-align: center;
-    margin: 8px 0;
+    padding: 16px 0;
+    text-decoration: none;
+    border: none;
   }
-  .btn:hover {
+  .custom-btn:hover {
     opacity: 0.9;
+  }
+  div.stButton > button {
+    width: 355px !important;
+    max-width: 100% !important;
+    margin: 20px auto !important;
+    background: #FFA500 !important;
+    color: #000 !important;
+    font-weight: bold !important;
+    font-size: 16px !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    padding: 16px 0 !important;
+    border: none !important;
   }
 </style>
 ''', unsafe_allow_html=True)
@@ -354,27 +371,15 @@ if st.session_state.page == "home":
             placeholder="形容詞を選択",
             label_visibility="collapsed"
         )
-    # 検索ボタン（HTML+CSS+JSで実装）
-    st.markdown('''
-      <a href="#" id="search-btn" class="btn">
-        検索
-      </a>
-      <script>
-        const btn = window.parent.document.getElementById("search-btn");
-        btn.onclick = () => {window.parent.postMessage({func: "to_results"}, "*");};
-      </script>
-    ''', unsafe_allow_html=True)
+    # 検索ボタン（st.button＋CSSで実装）
+    st.button("検索", on_click=to_results, key="search_btn_home")
     # 区切り線
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
     # 下部テキスト
     st.markdown('<div class="custom-bottom1">あなたが読んだ本の感想を投稿してください</div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
-    # Googleフォームボタン（HTML+CSSで実装）
-    st.markdown('''
-      <a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="btn">
-        Googleフォーム
-      </a>
-    ''', unsafe_allow_html=True)
+    # Googleフォームボタン（<a>＋CSSで実装）
+    st.markdown('<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="custom-btn">Googleフォーム</a>', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
