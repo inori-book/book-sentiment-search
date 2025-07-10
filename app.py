@@ -26,6 +26,20 @@ st.markdown('''
     background-size: cover !important;
     background-position: center !important;
   }
+  .btn {
+    display: inline-block;
+    background-color: #FFA500;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    text-align: center;
+    margin: 8px 0;
+  }
+  .btn:hover {
+    opacity: 0.9;
+  }
 </style>
 ''', unsafe_allow_html=True)
 
@@ -340,16 +354,27 @@ if st.session_state.page == "home":
             placeholder="形容詞を選択",
             label_visibility="collapsed"
         )
-    # 検索ボタン（st.buttonのまま、CSSで見た目統一）
-    if st.button("検索", on_click=to_results, key="search_btn_home"):
-        pass
+    # 検索ボタン（HTML+CSS+JSで実装）
+    st.markdown('''
+      <a href="#" id="search-btn" class="btn">
+        検索
+      </a>
+      <script>
+        const btn = window.parent.document.getElementById("search-btn");
+        btn.onclick = () => {window.parent.postMessage({func: "to_results"}, "*");};
+      </script>
+    ''', unsafe_allow_html=True)
     # 区切り線
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
     # 下部テキスト
     st.markdown('<div class="custom-bottom1">あなたが読んだ本の感想を投稿してください</div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
-    # Googleフォームボタン
-    st.markdown('<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="custom-orange-btn">Googleフォーム</a>', unsafe_allow_html=True)
+    # Googleフォームボタン（HTML+CSSで実装）
+    st.markdown('''
+      <a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="btn">
+        Googleフォーム
+      </a>
+    ''', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
