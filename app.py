@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 load_dotenv()
 
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
-st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed", theme="light")
+st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
 
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
 # 抽出対象の品詞をリスト化（将来的に増やしやすい形）
