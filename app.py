@@ -57,6 +57,11 @@ st.markdown('''
     padding: 16px 0 !important;
     border: none !important;
   }
+  /* タイトル・リード文・下部テキストの親divも中央揃え */
+  div[data-testid="stMarkdownContainer"] > div,
+  .custom-title, .custom-lead, .custom-bottom1, .custom-bottom2 {
+    text-align: center !important;
+  }
 </style>
 ''', unsafe_allow_html=True)
 
@@ -277,6 +282,7 @@ if st.session_state.page == "home":
             color: #FFFFFF !important;
             padding: 84px 10px 10px 10px !important;
             letter-spacing: 0.02em;
+            text-align: center !important;
         }}
         .custom-title span.colon {{
             color: #FF9500 !important;
@@ -286,6 +292,7 @@ if st.session_state.page == "home":
             font-size: 16px !important;
             color: #FFFFFF !important;
             padding: 10px !important;
+            text-align: center !important;
         }}
         .custom-bottom1 {{
             padding-top: 0 !important;
