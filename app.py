@@ -201,13 +201,16 @@ if st.session_state.page == "home":
     st.markdown(f'''
         <style>
         /* 背景画像＋黒レイヤー */
-        body {{
+        .stApp, body {{
             position: relative;
             min-height: 100vh;
-            background: url('background.png') no-repeat center center fixed;
+            background: url('/background.png'), url('background.png');
             background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }}
-        body::before {{
+        .stApp::before, body::before {{
             content: "";
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -273,28 +276,8 @@ if st.session_state.page == "home":
             color: #94A3B8 !important;
             opacity: 1 !important;
         }}
-        /* 検索ボタン */
-        .custom-search-btn button {{
-            width: 100%;
-            font-size: 16px !important;
-            font-weight: bold !important;
-            color: #000000 !important;
-            background: #FF9500 !important;
-            border-radius: 8px !important;
-            border: none !important;
-            padding: 16px 0 !important;
-            margin: 20px 10px 20px 10px !important;
-        }}
-        /* 区切り線 */
-        .custom-divider {{
-            width: 355px;
-            height: 1px;
-            background: #FFFFFF;
-            opacity: 0.3;
-            margin: 116px 10px 10px 10px !important;
-        }}
-        /* Googleフォームボタン */
-        .custom-gform-btn a {{
+        /* 共通ボタンデザイン */
+        .custom-orange-btn {{
             display: block;
             width: 100%;
             text-align: center;
@@ -305,7 +288,17 @@ if st.session_state.page == "home":
             border-radius: 8px !important;
             text-decoration: none !important;
             padding: 16px 0 !important;
-            margin: 20px 10px 10px 10px !important;
+            margin: 20px 10px 20px 10px !important;
+            border: none !important;
+            cursor: pointer;
+        }}
+        /* 区切り線 */
+        .custom-divider {{
+            width: 355px;
+            height: 1px;
+            background: #FFFFFF;
+            opacity: 0.3;
+            margin: 116px 10px 10px 10px !important;
         }}
         </style>
     ''', unsafe_allow_html=True)
@@ -333,19 +326,28 @@ if st.session_state.page == "home":
             placeholder="形容詞を選択",
             label_visibility="collapsed"
         )
-    # 検索ボタン
-    with st.container():
-        st.markdown('<div class="custom-search-btn">', unsafe_allow_html=True)
-        if st.button("検索", on_click=to_results, key="search_btn_home"):
-            pass
-        st.markdown('</div>', unsafe_allow_html=True)
+    # 検索ボタン（HTML+CSSで実装）
+    import streamlit.components.v1 as components
+    search_btn_html = '''
+    <form method="post">
+        <button type="submit" name="search" class="custom-orange-btn">検索</button>
+    </form>
+    '''
+    if 'search_btn_clicked' not in st.session_state:
+        st.session_state['search_btn_clicked'] = False
+    search_clicked = st.session_state.get('search_btn_clicked', False)
+    if st.experimental_get_query_params().get('search') or search_clicked:
+        st.session_state['search_btn_clicked'] = False
+        to_results()
+        st.experimental_rerun()
+    components.html(search_btn_html, height=70)
     # 区切り線
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
     # 下部テキスト
     st.markdown('<div class="custom-bottom1">あなたが読んだ本の感想を投稿してください</div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
     # Googleフォームボタン
-    st.markdown('<div class="custom-gform-btn"><a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank">Googleフォーム</a></div>', unsafe_allow_html=True)
+    st.markdown('<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="custom-orange-btn">Googleフォーム</a>', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
