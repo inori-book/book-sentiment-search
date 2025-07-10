@@ -216,13 +216,7 @@ def to_results():
     adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
     tmp = df.copy()
-    # ジャンル絞り込み（サイドバー削除のためスキップ）
-    # if genres:
-    #     tmp = tmp[tmp["genres_list"].apply(lambda gl: any(g in gl for g in genres))]
-    # スペック範囲絞り込み（必要なら同様にコメントアウト）
-    for k in spec_keys:
-        min_v, max_v = st.session_state.spec_ranges[k]
-        tmp = tmp[(tmp[k] >= min_v) & (tmp[k] <= max_v)]
+    # ジャンル・スペック絞り込みはサイドバー削除のためスキップ
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
