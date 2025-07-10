@@ -14,6 +14,21 @@ import matplotlib.pyplot as plt
 
 load_dotenv()
 
+st.markdown('''
+<style>
+  /* Streamlit 標準の背景色をクリア */
+  .stApp, .css-1d391kg, .css-k1vhr4 {
+    background: none !important;
+  }
+  /* Base64 埋め込みした背景画像を全体に敷く */
+  .stApp {
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAYACAIAAABn4K39AADUTGNhQlgAANRManVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAA...（省略）...kTTLmo%") !important;
+    background-size: cover !important;
+    background-position: center !important;
+  }
+</style>
+''', unsafe_allow_html=True)
+
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
 
