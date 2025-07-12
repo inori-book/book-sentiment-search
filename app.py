@@ -377,13 +377,25 @@ if st.session_state.page == "home":
     # 区切り線
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
     # 下部テキスト
-    st.markdown('<div class="custom-bottom1">あなたが読んだ本の感想を投稿してください</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-bottom1"><b>あなたが読んだ本の感想を投稿してください</b></div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
     # Googleフォームボタン（<a>＋CSSで実装）
     st.markdown('<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="custom-btn">Googleフォーム</a>', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
+    # 検索バー（flexレイアウト）
+    st.markdown('''
+    <div style="width:375px; padding:10px; display:flex; align-items:center; gap:8px; margin:0 auto;">
+      <button onclick="window.parent.postMessage({func: 'to_home'}, '*');" style="background:none;border:none;font-size:24px;cursor:pointer;padding:0 8px 0 0;">←</button>
+      <input type="text" value="{0}" readonly style="flex:1; font-size:16px; padding:8px; border-radius:6px; border:1px solid #ccc; background:#222; color:#fff;" />
+    </div>
+    '''.format(st.session_state.adj), unsafe_allow_html=True)
+    # 絞り込みボタン（flex配置）
+    col = st.columns([42, 333])
+    with col[1]:
+        if st.button("絞り込み", key="filter_btn"):
+            st.session_state['show_filter_modal'] = True
     if st.button("戻る", on_click=to_home):
         pass
     # 検索窓をランキング画面上部に常時表示
