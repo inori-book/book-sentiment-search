@@ -465,9 +465,6 @@ elif st.session_state.page == "results":
     st.markdown(f'''
     <style>
       .custom-breadcrumb {{
-        position: absolute;
-        left: 10px;
-        top: 135px;
         width: 355px;
         height: 28px;
         font-family: Inter, sans-serif;
@@ -476,6 +473,7 @@ elif st.session_state.page == "results":
         color: #17182A;
         display: flex;
         align-items: center;
+        margin: 16px auto 0 auto;
         z-index: 10;
       }}
       .custom-breadcrumb .home-link {{
