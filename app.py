@@ -397,20 +397,20 @@ elif st.session_state.page == "results":
     with col[1]:
         if st.button("絞り込み", key="filter_btn"):
             st.session_state['show_filter_modal'] = True
-    if st.button("戻る", on_click=to_home):
-        pass
-    # 検索窓をランキング画面上部に常時表示
-    st.markdown("## 🔍 再検索")
-    st.session_state.raw_input = st.text_input(
-        "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_results"
-    )
-    filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
-    st.session_state.raw_select = st.selectbox(
-        "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_results"
-    )
-    if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
-        pass
-    st.title("�� 検索結果ランキング")
+    # --- ここから下、再検索や入力欄・検索ボタンなどを削除 ---
+    # if st.button("戻る", on_click=to_home):
+    #     pass
+    # st.markdown("## 🔍 再検索")
+    # st.session_state.raw_input = st.text_input(
+    #     "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_results"
+    # )
+    # filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
+    # st.session_state.raw_select = st.selectbox(
+    #     "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_results"
+    # )
+    # if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
+    #     pass
+    st.title(" 検索結果ランキング")
     # パンくずリストをタイトル直下に表示（ホームはテキストリンク風ボタン）
     col1, col2 = st.columns([1, 10])
     with col1:
