@@ -385,12 +385,13 @@ if st.session_state.page == "home":
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
     # 検索バー（flexレイアウト）
+    adj = st.session_state.get('adj', '')
     st.markdown('''
     <div style="width:375px; padding:10px; display:flex; align-items:center; gap:8px; margin:0 auto;">
       <button onclick="window.parent.postMessage({func: 'to_home'}, '*');" style="background:none;border:none;font-size:24px;cursor:pointer;padding:0 8px 0 0;">←</button>
       <input type="text" value="{0}" readonly style="flex:1; font-size:16px; padding:8px; border-radius:6px; border:1px solid #ccc; background:#222; color:#fff;" />
     </div>
-    '''.format(st.session_state.adj), unsafe_allow_html=True)
+    '''.format(adj), unsafe_allow_html=True)
     # 絞り込みボタン（flex配置）
     col = st.columns([42, 333])
     with col[1]:
