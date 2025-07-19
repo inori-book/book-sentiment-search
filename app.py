@@ -392,11 +392,61 @@ elif st.session_state.page == "results":
       <input type="text" value="{adj}" readonly style="flex:1; font-size:16px; padding:8px; border-radius:6px; border:1px solid #ccc; background:#222; color:#fff;" />
     </div>
     ''', unsafe_allow_html=True)
-    # 絞り込みボタン（flex配置）
-    col = st.columns([42, 333])
-    with col[1]:
-        if st.button("絞り込み", key="filter_btn"):
-            st.session_state['show_filter_modal'] = True
+    # 絞り込みボタン（カスタムHTML+CSSで実装）
+    st.markdown('''
+    <style>
+      .custom-filter-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        left: 42px;
+        top: 103px;
+        width: 98px;
+        height: 32px;
+        background: #FF9500;
+        border-radius: 8px;
+        padding: 2px 4px 2px 10px;
+        border: none;
+        cursor: pointer;
+        box-shadow: none;
+        outline: none;
+        z-index: 10;
+      }
+      .custom-filter-btn:hover {
+        opacity: 0.9;
+      }
+      .custom-filter-btn .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 4px;
+      }
+      .custom-filter-btn .icon svg {
+        width: 20px;
+        height: 20px;
+        fill: #17182A;
+        display: block;
+      }
+      .custom-filter-btn .label {
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+        line-height: 20px;
+        color: #17182A;
+        font-weight: 400;
+        display: inline-block;
+        vertical-align: middle;
+      }
+    </style>
+    <button class="custom-filter-btn" onclick="window.parent.postMessage({func: 'show_filter_modal'}, '*');">
+      <span class="icon">
+        <svg viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>
+      </span>
+      <span class="label">絞り込み</span>
+    </button>
+    ''', unsafe_allow_html=True)
     # --- ここから下、再検索や入力欄・検索ボタンなどを削除 ---
     # if st.button("戻る", on_click=to_home):
     #     pass
@@ -410,31 +460,42 @@ elif st.session_state.page == "results":
     # )
     # if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
     #     pass
-    st.title(" 検索結果ランキング")
-    # パンくずリストをタイトル直下に表示（ホームはテキストリンク風ボタン）
-    col1, col2 = st.columns([1, 10])
-    with col1:
-        btn = st.button("ホーム", key="breadcrumb_home")
-        st.markdown(
-            """
-            <style>
-            div[data-testid="stButton"] button {
-                background: none !important;
-                color: #1a73e8 !important;
-                text-decoration: underline !important;
-                border: none !important;
-                padding: 0 !important;
-                font-size: 1em !important;
-                font-weight: normal !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-        if btn:
-            to_home()
-    with col2:
-        st.markdown(f"> 「{st.session_state.adj}」の検索結果")
+    st.title("検索結果ランキング")
+    # パンくずリスト（カスタムHTML+CSSで実装）
+    st.markdown(f'''
+    <style>
+      .custom-breadcrumb {{
+        position: absolute;
+        left: 10px;
+        top: 135px;
+        width: 355px;
+        height: 28px;
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+        line-height: 28px;
+        color: #17182A;
+        display: flex;
+        align-items: center;
+        z-index: 10;
+      }}
+      .custom-breadcrumb .home-link {{
+        color: #17182A;
+        text-decoration: underline;
+        cursor: pointer;
+      }}
+      .custom-breadcrumb .sep {{
+        margin: 0 4px;
+      }}
+      .custom-breadcrumb .kwd {{
+        color: #17182A;
+      }}
+    </style>
+    <div class="custom-breadcrumb">
+      <span class="home-link" onclick="window.parent.postMessage({{func: 'to_home'}}, '*');">ホーム</span>
+      <span class="sep">＞</span>
+      検索キーワード「<span class="kwd">{adj}</span>」
+    </div>
+    ''', unsafe_allow_html=True)
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
