@@ -493,7 +493,26 @@ elif st.session_state.page == "results":
       検索キーワード「<span class="kwd">{adj}</span>」
     </div>
     ''', unsafe_allow_html=True)
-    st.title("検索結果ランキング")
+    st.title(f'検索結果ランキング「{adj}」')
+    # 注意書き
+    st.markdown('''
+    <style>
+      .custom-note {
+        position: absolute;
+        left: 10px;
+        top: 165px;
+        width: 355px;
+        height: 40px;
+        font-family: 'Inter', sans-serif;
+        font-size: 10px;
+        line-height: 20px;
+        color: #FFFFFF;
+      }
+    </style>
+    <div class="custom-note">
+      ※楽天ブックスに登録がない書籍、ISBNが異なる書籍は正しく表示されない場合があります。
+    </div>
+    ''', unsafe_allow_html=True)
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
