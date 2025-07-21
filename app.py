@@ -460,8 +460,7 @@ elif st.session_state.page == "results":
     # )
     # if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
     #     pass
-    st.title("検索結果ランキング")
-    # パンくずリスト（カスタムHTML+CSSで実装）
+    # パンくずリストをタイトルの「前」に移動
     st.markdown(f'''
     <style>
       .custom-breadcrumb {{
@@ -494,6 +493,7 @@ elif st.session_state.page == "results":
       検索キーワード「<span class="kwd">{adj}</span>」
     </div>
     ''', unsafe_allow_html=True)
+    st.title("検索結果ランキング")
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
