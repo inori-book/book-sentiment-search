@@ -576,6 +576,8 @@ elif st.session_state.page == "results":
         display: flex;
         flex-direction: column;
         gap: 4px;
+        text-align: left;
+        align-items: flex-start;
       }
       .card-meta .meta-bar {
         width: 19px;
@@ -597,6 +599,8 @@ elif st.session_state.page == "results":
         flex-wrap: wrap;
         gap: 6px;
         margin: 4px 0;
+        text-align: left;
+        align-items: flex-start;
       }
       .genre-tag {
         display: flex;
@@ -609,6 +613,7 @@ elif st.session_state.page == "results":
         color: #000000;
         font-size: 10px;
         font-weight: bold;
+        text-align: left;
       }
     </style>
     ''', unsafe_allow_html=True)
@@ -626,23 +631,27 @@ elif st.session_state.page == "results":
             genres = row.get('genres_list', [])
             genre_tags_html = "".join([f'<span class="genre-tag">{g}</span>' for g in genres])
 
+            # タイトル行ボタン
+            if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}", key=f"title_btn_{i}"):
+                to_detail(i)
+                st.rerun()
+
+            # 書影ボタン
+            if st.button(" ", key=f"cover_btn_{i}"):
+                to_detail(i)
+                st.rerun()
             card_html = f'''
-            <div class="result-card" onclick="window.parent.postMessage({{func: 'to_detail', 'idx': {i}}}, '*')">
-                <div class="card-title-row">
-                    <div class="rank-circle">{row['rank']}</div>
-                    <div class="card-title-text">『{row['title']}』/ {row['author']}</div>
-                </div>
+            <div class="result-card" style="margin-top:-48px;">
                 <div class="card-content-row">
                     <div class="card-thumbnail">
-                        <img src="{cover_url}" alt="{row['title']}">
+                        <img src="{cover_url}" alt="{row['title']}" style="margin-top:-32px;cursor:pointer;"/>
                     </div>
                     <div class="card-meta">
                         <div>キーワード登場回数：{row['count']}回</div>
-                        <div class="meta-bar"></div>
+                        <div>ジャンル</div>
                         <div class="genre-tags-container">
                             {genre_tags_html}
                         </div>
-                        <div class="meta-bar"></div>
                         <div>出版社：{rakuten.get('publisher', '—')}</div>
                         <div>発行日：{rakuten.get('pubdate', '—')}</div>
                         <div>定価：{rakuten.get('price', '—')}円</div>
