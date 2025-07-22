@@ -626,25 +626,19 @@ elif st.session_state.page == "results":
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
             placeholder_cover = "https://via.placeholder.com/116x105/D9D9D9/FFFFFF?text=No+Image"
             cover_url = rakuten.get("cover") or placeholder_cover
-            
-            # ジャンルタグのHTMLを生成
             genres = row.get('genres_list', [])
-            genre_tags_html = "".join([f'<span class="genre-tag">{g}</span>' for g in genres])
+            genre_tags_html = "".join([f'<span class=\"genre-tag\">{g}</span>' for g in genres])
 
-            # タイトル行ボタン
+            # タイトル行のみクリッカブル
             if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}", key=f"title_btn_{i}"):
                 to_detail(i)
                 st.rerun()
 
-            # 書影ボタン
-            if st.button(" ", key=f"cover_btn_{i}"):
-                to_detail(i)
-                st.rerun()
             card_html = f'''
             <div class="result-card" style="margin-top:-48px;">
                 <div class="card-content-row">
                     <div class="card-thumbnail">
-                        <img src="{cover_url}" alt="{row['title']}" style="margin-top:-32px;cursor:pointer;"/>
+                        <img src="{cover_url}" alt="{row['title']}" style="margin-top:-32px;"/>
                     </div>
                     <div class="card-meta">
                         <div>キーワード登場回数：{row['count']}回</div>
