@@ -510,22 +510,147 @@ elif st.session_state.page == "results":
       }
     </style>
     <div class="custom-note">
-      ※楽天ブックスに登録がない書籍、ISBNが異なる書籍は正しく表示されない場合があります。
+      ※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。
     </div>
     ''', unsafe_allow_html=True)
+
+    # カードレイアウト用のCSS
+    st.markdown('''
+    <style>
+      .result-card {
+        width: 375px;
+        /* height: 126px; */ /* 高さはコンテンツに応じて自動調整 */
+        margin: 24px auto;
+        padding: 10px;
+        background: #1C1C1E; /* カード背景色を仮設定 */
+        border-radius: 8px;
+        cursor: pointer;
+        border: 1px solid #333;
+      }
+      .result-card:hover {
+        border: 1px solid #FF9500;
+      }
+      .card-title-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .rank-circle {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #E72F30;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px; /* 数字サイズ調整 */
+        font-weight: bold;
+        flex-shrink: 0;
+        margin-right: 8px;
+      }
+      .card-title-text {
+        font-family: 'Inter', sans-serif;
+        font-size: 16px;
+        line-height: 28px;
+        color: #FFFFFF;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card-content-row {
+        display: flex;
+        gap: 16px;
+      }
+      .card-thumbnail img {
+        width: 116px;
+        height: 105px;
+        border-radius: 8px;
+        object-fit: cover;
+        background-color: #D9D9D9;
+      }
+      .card-meta {
+        font-family: 'Inter', sans-serif;
+        color: #FFFFFF;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .card-meta .meta-bar {
+        width: 19px;
+        height: 2px;
+        background: #FFFFFF;
+        margin: 4px 0;
+      }
+      .star-rating {
+        display: flex;
+        gap: 4px; /* 星の間隔 */
+      }
+      .star-rating svg {
+        width: 20px;
+        height: 19px;
+        fill: #FFC400;
+      }
+      .genre-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 4px 0;
+      }
+      .genre-tag {
+        display: flex;
+        padding: 4px 6px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border-radius: 8px;
+        background: #FFD293;
+        color: #000000;
+        font-size: 10px;
+        font-weight: bold;
+      }
+    </style>
+    ''', unsafe_allow_html=True)
+
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
     else:
         for i, row in res.iterrows():
-            if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}（{row['count']}回）", key=f"title_btn_{i}"):
-                to_detail(i)
-                st.rerun()
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
-            if rakuten.get("cover"):
-                st.image(rakuten["cover"], width=120)
-            with st.expander("▼作品紹介"):
-                st.write(rakuten.get("description", "—"))
+            placeholder_cover = "https://via.placeholder.com/116x105/D9D9D9/FFFFFF?text=No+Image"
+            cover_url = rakuten.get("cover") or placeholder_cover
+            
+            # ジャンルタグのHTMLを生成
+            genres = row.get('genres_list', [])
+            genre_tags_html = "".join([f'<span class="genre-tag">{g}</span>' for g in genres])
+
+            card_html = f'''
+            <div class="result-card" onclick="window.parent.postMessage({{func: 'to_detail', 'idx': {i}}}, '*')">
+                <div class="card-title-row">
+                    <div class="rank-circle">{row['rank']}</div>
+                    <div class="card-title-text">『{row['title']}』/ {row['author']}</div>
+                </div>
+                <div class="card-content-row">
+                    <div class="card-thumbnail">
+                        <img src="{cover_url}" alt="{row['title']}">
+                    </div>
+                    <div class="card-meta">
+                        <div>キーワード登場回数：{row['count']}回</div>
+                        <div class="meta-bar"></div>
+                        <div class="genre-tags-container">
+                            {genre_tags_html}
+                        </div>
+                        <div class="meta-bar"></div>
+                        <div>出版社：{rakuten.get('publisher', '—')}</div>
+                        <div>発行日：{rakuten.get('pubdate', '—')}</div>
+                        <div>定価：{rakuten.get('price', '—')}円</div>
+                    </div>
+                </div>
+            </div>
+            '''
+            st.markdown(card_html, unsafe_allow_html=True)
 
 # ─── 9. 詳細画面 ───────────────────────────────────────
 elif st.session_state.page == "detail":
