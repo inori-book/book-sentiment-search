@@ -498,21 +498,76 @@ elif st.session_state.page == "results":
     st.markdown('''
     <style>
       .custom-note {
-        position: absolute;
-        left: 10px;
-        top: 165px;
         width: 355px;
         height: 40px;
         font-family: 'Inter', sans-serif;
         font-size: 10px;
         line-height: 20px;
         color: #FFFFFF;
+        margin: 0 auto 8px auto;
+      }
+      .custom-filter-btn2 {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 98px;
+        height: 32px;
+        background: #FF9500;
+        border-radius: 8px;
+        padding: 2px 4px 2px 10px;
+        border: none;
+        cursor: pointer;
+        box-shadow: none;
+        outline: none;
+        z-index: 10;
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+        color: #17182A;
+        font-weight: 400;
+        gap: 4px;
+      }
+      .custom-filter-btn2 .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 4px;
+      }
+      .custom-filter-btn2 .icon svg {
+        width: 20px;
+        height: 20px;
+        fill: #17182A;
+        display: block;
       }
     </style>
-    <div class="custom-note">
-      ※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。
-    </div>
     ''', unsafe_allow_html=True)
+    st.markdown('<div class="custom-note">※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。</div>', unsafe_allow_html=True)
+
+    # タイトル下・右寄せで絞り込みボタン
+    col1, col2 = st.columns([6, 1])
+    with col2:
+        if st.button("", key="filter_btn2", help="絞り込み"):
+            st.session_state['show_filter_modal'] = True
+        st.markdown('''
+        <button class="custom-filter-btn2" onclick="window.parent.postMessage({func: 'show_filter_modal'}, '*'); return false;">
+          <span class="icon">
+            <svg viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>
+          </span>
+          絞り込み
+        </button>
+        ''', unsafe_allow_html=True)
+
+    # オーバーレイダイアログ
+    if st.session_state.get('show_filter_modal', False):
+        st.markdown('''
+        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
+          <div style="background:#fff;padding:32px;border-radius:12px;min-width:300px;">
+            <b>絞り込み条件（ここにUIを追加）</b><br>
+            <button onclick="window.parent.postMessage({func: 'close_filter_modal'}, '*');">閉じる</button>
+          </div>
+        </div>
+        ''', unsafe_allow_html=True)
 
     # カードレイアウト用のCSS
     st.markdown('''
@@ -635,10 +690,10 @@ elif st.session_state.page == "results":
                 st.rerun()
 
             card_html = f'''
-            <div class="result-card" style="margin-top:-48px;">
+            <div class="result-card">
                 <div class="card-content-row">
                     <div class="card-thumbnail">
-                        <img src="{cover_url}" alt="{row['title']}" style="margin-top:-32px;"/>
+                        <img src="{cover_url}" alt="{row['title']}" />
                     </div>
                     <div class="card-meta">
                         <div>キーワード登場回数：{row['count']}回</div>
