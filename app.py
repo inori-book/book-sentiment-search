@@ -392,171 +392,46 @@ elif st.session_state.page == "results":
       <input type="text" value="{adj}" readonly style="flex:1; font-size:16px; padding:8px; border-radius:6px; border:1px solid #ccc; background:#222; color:#fff;" />
     </div>
     ''', unsafe_allow_html=True)
-    # 絞り込みボタン（カスタムHTML+CSSで実装）
-    st.markdown('''
-    <style>
-      .custom-filter-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        left: 42px;
-        top: 103px;
-        width: 98px;
-        height: 32px;
-        background: #FF9500;
-        border-radius: 8px;
-        padding: 2px 4px 2px 10px;
-        border: none;
-        cursor: pointer;
-        box-shadow: none;
-        outline: none;
-        z-index: 10;
-      }
-      .custom-filter-btn:hover {
-        opacity: 0.9;
-      }
-      .custom-filter-btn .icon {
-        width: 20px;
-        height: 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 4px;
-      }
-      .custom-filter-btn .icon svg {
-        width: 20px;
-        height: 20px;
-        fill: #17182A;
-        display: block;
-      }
-      .custom-filter-btn .label {
-        font-family: Inter, sans-serif;
-        font-size: 12px;
-        line-height: 20px;
-        color: #17182A;
-        font-weight: 400;
-        display: inline-block;
-        vertical-align: middle;
-      }
-    </style>
-    <button class="custom-filter-btn" onclick="window.parent.postMessage({func: 'show_filter_modal'}, '*');">
-      <span class="icon">
-        <svg viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>
-      </span>
-      <span class="label">絞り込み</span>
-    </button>
-    ''', unsafe_allow_html=True)
-    # --- ここから下、再検索や入力欄・検索ボタンなどを削除 ---
-    # if st.button("戻る", on_click=to_home):
-    #     pass
-    # st.markdown("## 🔍 再検索")
-    # st.session_state.raw_input = st.text_input(
-    #     "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_results"
-    # )
-    # filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
-    # st.session_state.raw_select = st.selectbox(
-    #     "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_results"
-    # )
-    # if st.button("🔍 検索", on_click=to_results, key="search_btn_results"):
-    #     pass
-    # パンくずリストをタイトルの「前」に移動
-    st.markdown(f'''
-    <style>
-      .custom-breadcrumb {{
-        width: 355px;
-        height: 28px;
-        font-family: Inter, sans-serif;
-        font-size: 12px;
-        line-height: 28px;
-        color: #17182A;
-        display: flex;
-        align-items: center;
-        margin: 16px auto 0 auto;
-        z-index: 10;
-      }}
-      .custom-breadcrumb .home-link {{
-        color: #17182A;
-        text-decoration: underline;
-        cursor: pointer;
-      }}
-      .custom-breadcrumb .sep {{
-        margin: 0 4px;
-      }}
-      .custom-breadcrumb .kwd {{
-        color: #17182A;
-      }}
-    </style>
-    <div class="custom-breadcrumb">
-      <span class="home-link" onclick="window.parent.postMessage({{func: 'to_home'}}, '*');">ホーム</span>
-      <span class="sep">＞</span>
-      検索キーワード「<span class="kwd">{adj}</span>」
-    </div>
-    ''', unsafe_allow_html=True)
-    st.title(f'検索結果ランキング「{adj}」')
-    # 注意書き
-    st.markdown('''
-    <style>
-      .custom-note {
-        width: 355px;
-        height: 40px;
-        font-family: 'Inter', sans-serif;
-        font-size: 10px;
-        line-height: 20px;
-        color: #FFFFFF;
-        margin: 0 auto 8px auto;
-      }
-      .custom-filter-btn2 {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 98px;
-        height: 32px;
-        background: #FF9500;
-        border-radius: 8px;
-        padding: 2px 4px 2px 10px;
-        border: none;
-        cursor: pointer;
-        box-shadow: none;
-        outline: none;
-        z-index: 10;
-        font-family: Inter, sans-serif;
-        font-size: 12px;
-        color: #17182A;
-        font-weight: 400;
-        gap: 4px;
-      }
-      .custom-filter-btn2 .icon {
-        width: 20px;
-        height: 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 4px;
-      }
-      .custom-filter-btn2 .icon svg {
-        width: 20px;
-        height: 20px;
-        fill: #17182A;
-        display: block;
-      }
-    </style>
-    ''', unsafe_allow_html=True)
-    st.markdown('<div class="custom-note">※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。</div>', unsafe_allow_html=True)
-
     # タイトル下・右寄せで絞り込みボタン
     col1, col2 = st.columns([6, 1])
     with col2:
-        if st.button("", key="filter_btn2", help="絞り込み"):
+        if st.button("絞り込み", key="filter_btn2"):
             st.session_state['show_filter_modal'] = True
-        st.markdown('''
-        <button class="custom-filter-btn2" onclick="window.parent.postMessage({func: 'show_filter_modal'}, '*'); return false;">
-          <span class="icon">
-            <svg viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>
-          </span>
-          絞り込み
-        </button>
-        ''', unsafe_allow_html=True)
+    st.markdown('''
+    <style>
+      div.stButton > button#filter_btn2 {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 98px !important;
+        height: 32px !important;
+        background: #FF9500 !important;
+        border-radius: 8px !important;
+        padding: 2px 4px 2px 10px !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        outline: none !important;
+        z-index: 10 !important;
+        font-family: Inter, sans-serif !important;
+        font-size: 12px !important;
+        color: #17182A !important;
+        font-weight: 400 !important;
+        gap: 4px !important;
+        position: relative;
+      }
+      div.stButton > button#filter_btn2:before {
+        content: '';
+        display: inline-block;
+        vertical-align: middle;
+        width: 20px;
+        height: 20px;
+        margin-right: 4px;
+        background: url('data:image/svg+xml;utf8,<svg fill="%2317182A" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>') no-repeat center center;
+        background-size: 20px 20px;
+      }
+    </style>
+    ''', unsafe_allow_html=True)
 
     # オーバーレイダイアログ
     if st.session_state.get('show_filter_modal', False):
@@ -669,6 +544,19 @@ elif st.session_state.page == "results":
         font-size: 10px;
         font-weight: bold;
         text-align: left;
+      }
+    </style>
+    ''', unsafe_allow_html=True)
+
+    st.markdown('''
+    <style>
+      div.stButton > button {
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
+      }
+      .result-card {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
       }
     </style>
     ''', unsafe_allow_html=True)
