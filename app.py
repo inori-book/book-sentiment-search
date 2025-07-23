@@ -430,8 +430,19 @@ elif st.session_state.page == "results":
         background: url('data:image/svg+xml;utf8,<svg fill="%2317182A" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>') no-repeat center center;
         background-size: 20px 20px;
       }
+      .breadcrumb-text {
+        width: 355px;
+        margin: 12px auto 0 auto;
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+        color: #FFFFFF;
+        line-height: 20px;
+      }
     </style>
     ''', unsafe_allow_html=True)
+    # パンくずリスト風テキスト
+    adj = st.session_state.get('adj', '')
+    st.markdown(f'<div class="breadcrumb-text">ホーム &gt; 検索結果「{adj}」</div>', unsafe_allow_html=True)
 
     # オーバーレイダイアログ
     if st.session_state.get('show_filter_modal', False):
@@ -491,6 +502,7 @@ elif st.session_state.page == "results":
       .card-content-row {
         display: flex;
         gap: 16px;
+        align-items: center;
       }
       .card-thumbnail img {
         width: 116px;
