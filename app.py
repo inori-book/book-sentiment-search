@@ -220,6 +220,7 @@ st.markdown('''
 def to_results():
     adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
+    st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
     tmp = df.copy()
     # ジャンル・スペック絞り込みはサイドバー削除のためスキップ
     # 形容詞絞り込み
@@ -385,8 +386,10 @@ if st.session_state.page == "home":
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
     # 1. 検索ワード入力欄
+    if not st.session_state.raw_input:
+        st.session_state.raw_input = st.session_state.get('adj', '')
     st.session_state.raw_input = st.text_input(
-        "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_results"
+        "", value=st.session_state.raw_input, key="raw_input_results", placeholder=""
     )
     # 2. 検索ボタン
     if st.button("検索", key="search_btn_results"):
@@ -396,7 +399,7 @@ elif st.session_state.page == "results":
         st.session_state['show_filter_modal'] = True
     # 4. 検索結果タイトル
     adj = st.session_state.get('adj', '')
-    st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;">検索結果「{adj}」</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">検索結果「{adj}」</div>', unsafe_allow_html=True)
     # 5. 注意書き
     st.markdown('<div class="custom-note">※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。</div>', unsafe_allow_html=True)
     # 6. 検索結果カード
@@ -409,6 +412,12 @@ elif st.session_state.page == "results":
       .result-card {
         margin-top: 0 !important;
         padding-top: 0 !important;
+      }
+      .card-content-row {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+        align-items: center;
       }
     </style>
     ''', unsafe_allow_html=True)
