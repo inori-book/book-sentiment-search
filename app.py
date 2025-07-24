@@ -384,182 +384,22 @@ if st.session_state.page == "home":
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
-    # 検索バー（flexレイアウト）
+    # 1. 検索ワード入力欄
+    st.session_state.raw_input = st.text_input(
+        "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_results"
+    )
+    # 2. 検索ボタン
+    if st.button("検索", key="search_btn_results"):
+        to_results()
+    # 3. 絞り込みボタン
+    if st.button("絞り込み", key="filter_btn2"):
+        st.session_state['show_filter_modal'] = True
+    # 4. 検索結果タイトル
     adj = st.session_state.get('adj', '')
-    st.markdown(f'''
-    <div style="width:375px; padding:10px; display:flex; align-items:center; gap:8px; margin:0 auto;">
-      <button onclick="window.parent.postMessage({{func: 'to_home'}}, '*');" style="background:none;border:none;font-size:24px;cursor:pointer;padding:0 8px 0 0;">←</button>
-      <input type="text" value="{adj}" readonly style="flex:1; font-size:16px; padding:8px; border-radius:6px; border:1px solid #ccc; background:#222; color:#fff;" />
-    </div>
-    ''', unsafe_allow_html=True)
-    # タイトル下・右寄せで絞り込みボタン
-    col1, col2 = st.columns([6, 1])
-    with col2:
-        if st.button("絞り込み", key="filter_btn2"):
-            st.session_state['show_filter_modal'] = True
-    st.markdown('''
-    <style>
-      div.stButton > button#filter_btn2 {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 98px !important;
-        height: 32px !important;
-        background: #FF9500 !important;
-        border-radius: 8px !important;
-        padding: 2px 4px 2px 10px !important;
-        border: none !important;
-        cursor: pointer !important;
-        box-shadow: none !important;
-        outline: none !important;
-        z-index: 10 !important;
-        font-family: Inter, sans-serif !important;
-        font-size: 12px !important;
-        color: #17182A !important;
-        font-weight: 400 !important;
-        gap: 4px !important;
-        position: relative;
-      }
-      div.stButton > button#filter_btn2:before {
-        content: '';
-        display: inline-block;
-        vertical-align: middle;
-        width: 20px;
-        height: 20px;
-        margin-right: 4px;
-        background: url('data:image/svg+xml;utf8,<svg fill="%2317182A" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm4 7h10v2H7v-2zm4 7h2v2h-2v-2z"/></svg>') no-repeat center center;
-        background-size: 20px 20px;
-      }
-      .breadcrumb-text {
-        width: 355px;
-        margin: 12px auto 0 auto;
-        font-family: Inter, sans-serif;
-        font-size: 12px;
-        color: #FFFFFF;
-        line-height: 20px;
-      }
-    </style>
-    ''', unsafe_allow_html=True)
-    # パンくずリスト風テキスト
-    adj = st.session_state.get('adj', '')
-    st.markdown(f'<div class="breadcrumb-text">ホーム &gt; 検索結果「{adj}」</div>', unsafe_allow_html=True)
-
-    # オーバーレイダイアログ
-    if st.session_state.get('show_filter_modal', False):
-        st.markdown('''
-        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">
-          <div style="background:#fff;padding:32px;border-radius:12px;min-width:300px;">
-            <b>絞り込み条件（ここにUIを追加）</b><br>
-            <button onclick="window.parent.postMessage({func: 'close_filter_modal'}, '*');">閉じる</button>
-          </div>
-        </div>
-        ''', unsafe_allow_html=True)
-
-    # カードレイアウト用のCSS
-    st.markdown('''
-    <style>
-      .result-card {
-        width: 375px;
-        /* height: 126px; */ /* 高さはコンテンツに応じて自動調整 */
-        margin: 24px auto;
-        padding: 10px;
-        background: #1C1C1E; /* カード背景色を仮設定 */
-        border-radius: 8px;
-        cursor: pointer;
-        border: 1px solid #333;
-      }
-      .result-card:hover {
-        border: 1px solid #FF9500;
-      }
-      .card-title-row {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-      }
-      .rank-circle {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #E72F30;
-        color: #FFFFFF;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px; /* 数字サイズ調整 */
-        font-weight: bold;
-        flex-shrink: 0;
-        margin-right: 8px;
-      }
-      .card-title-text {
-        font-family: 'Inter', sans-serif;
-        font-size: 16px;
-        line-height: 28px;
-        color: #FFFFFF;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .card-content-row {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-      }
-      .card-thumbnail img {
-        width: 116px;
-        height: 105px;
-        border-radius: 8px;
-        object-fit: cover;
-        background-color: #D9D9D9;
-      }
-      .card-meta {
-        font-family: 'Inter', sans-serif;
-        color: #FFFFFF;
-        font-size: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        text-align: left;
-        align-items: flex-start;
-      }
-      .card-meta .meta-bar {
-        width: 19px;
-        height: 2px;
-        background: #FFFFFF;
-        margin: 4px 0;
-      }
-      .star-rating {
-        display: flex;
-        gap: 4px; /* 星の間隔 */
-      }
-      .star-rating svg {
-        width: 20px;
-        height: 19px;
-        fill: #FFC400;
-      }
-      .genre-tags-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin: 4px 0;
-        text-align: left;
-        align-items: flex-start;
-      }
-      .genre-tag {
-        display: flex;
-        padding: 4px 6px;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        border-radius: 8px;
-        background: #FFD293;
-        color: #000000;
-        font-size: 10px;
-        font-weight: bold;
-        text-align: left;
-      }
-    </style>
-    ''', unsafe_allow_html=True)
-
+    st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;">検索結果「{adj}」</div>', unsafe_allow_html=True)
+    # 5. 注意書き
+    st.markdown('<div class="custom-note">※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。</div>', unsafe_allow_html=True)
+    # 6. 検索結果カード
     st.markdown('''
     <style>
       div.stButton > button {
@@ -572,7 +412,6 @@ elif st.session_state.page == "results":
       }
     </style>
     ''', unsafe_allow_html=True)
-
     res = st.session_state.results
     if res.empty:
         st.warning("該当する本がありませんでした。")
@@ -583,12 +422,10 @@ elif st.session_state.page == "results":
             cover_url = rakuten.get("cover") or placeholder_cover
             genres = row.get('genres_list', [])
             genre_tags_html = "".join([f'<span class=\"genre-tag\">{g}</span>' for g in genres])
-
             # タイトル行のみクリッカブル
             if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}", key=f"title_btn_{i}"):
                 to_detail(i)
                 st.rerun()
-
             card_html = f'''
             <div class="result-card">
                 <div class="card-content-row">
