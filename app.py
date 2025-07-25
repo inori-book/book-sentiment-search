@@ -410,11 +410,14 @@ elif st.session_state.page == "results":
       div.stButton > button {
         margin-bottom: 0 !important;
         margin-top: 0 !important;
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
       }
       .result-card {
         margin-top: 0 !important;
         padding-top: 0 !important;
         min-height: 126px !important;
+        margin-bottom: 8px !important;
       }
       .card-content-row {
         display: flex;
