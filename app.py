@@ -414,12 +414,24 @@ elif st.session_state.page == "results":
       .result-card {
         margin-top: 0 !important;
         padding-top: 0 !important;
+        min-height: 126px !important;
       }
       .card-content-row {
         display: flex;
         flex-direction: row;
         gap: 16px;
         align-items: center;
+      }
+      .card-thumbnail {
+        width: 116px !important;
+        height: 105px !important;
+        flex-shrink: 0 !important;
+      }
+      .card-thumbnail img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 8px !important;
       }
       .card-meta {
         font-family: 'Inter', sans-serif;
@@ -430,6 +442,32 @@ elif st.session_state.page == "results":
         gap: 4px;
         text-align: left !important;
         align-items: flex-start;
+      }
+      .genre-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 2px;
+      }
+      .genre-tag {
+        display: inline-flex;
+        padding: 4px 6px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        border-radius: 8px;
+        background: #FFD293;
+        color: #000000;
+        font-size: 10px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .custom-note {
+        font-family: 'Inter', sans-serif;
+        color: #FFFFFF;
+        font-size: 12px;
+        line-height: 16px;
+        margin: 8px 10px 0 10px;
       }
     </style>
     ''', unsafe_allow_html=True)
