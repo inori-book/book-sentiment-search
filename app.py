@@ -217,8 +217,9 @@ st.markdown('''
 ''', unsafe_allow_html=True)
 
 # ─── 6. ページ遷移用関数 ─────────────────────────────────────
-def to_results():
-    adj = st.session_state.raw_select or st.session_state.raw_input.strip()
+def to_results(adj=None):
+    if adj is None:
+        adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
     st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
     tmp = df.copy()
@@ -392,8 +393,9 @@ elif st.session_state.page == "results":
         "", value=st.session_state.raw_input, key="raw_input_results", placeholder=""
     )
     # 2. 検索ボタン
+    new_input = st.session_state.raw_input
     if st.button("検索", key="search_btn_results"):
-        to_results()
+        to_results(new_input)
     # 3. 絞り込みボタン
     if st.button("絞り込み", key="filter_btn2"):
         st.session_state['show_filter_modal'] = True
@@ -418,6 +420,16 @@ elif st.session_state.page == "results":
         flex-direction: row;
         gap: 16px;
         align-items: center;
+      }
+      .card-meta {
+        font-family: 'Inter', sans-serif;
+        color: #FFFFFF;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-align: left !important;
+        align-items: flex-start;
       }
     </style>
     ''', unsafe_allow_html=True)
