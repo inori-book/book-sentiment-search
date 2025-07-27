@@ -187,18 +187,40 @@ if "raw_select" not in st.session_state:
     st.session_state.raw_select = ""
 
 # ─── 5. サイドバー: ジャンル・スペック絞り込み ─────────────────────────────
-# st.sidebar.header("絞り込み")
-# st.sidebar.subheader("ジャンル")
-# unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
-# genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=[])
-#
-# st.sidebar.subheader("スペック")
-# spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful"]
-# spec_labels = ["エロ", "グロ", "狂気", "超常", "耽美", "痛み"]
-# if "spec_ranges" not in st.session_state:
-#     st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
-# for k, label in zip(spec_keys, spec_labels):
-#     st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, (0, 5), key=f"slider_{k}")
+st.sidebar.header("絞り込み")
+
+# スペック絞り込み
+st.sidebar.subheader("スペック")
+spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful", "action", "mystery"]
+spec_labels = ["エロ", "グロ", "人怖", "霊怖", "耽美", "感動", "アクション", "謎"]
+
+if "spec_ranges" not in st.session_state:
+    st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+
+for k, label in zip(spec_keys, spec_labels):
+    st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, st.session_state.spec_ranges[k], key=f"slider_{k}")
+
+# ジャンル絞り込み
+st.sidebar.subheader("ジャンル")
+unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
+if "selected_genres" not in st.session_state:
+    st.session_state.selected_genres = []
+st.session_state.selected_genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=st.session_state.selected_genres)
+
+# 適用・キャンセルボタン
+col1, col2 = st.sidebar.columns(2)
+with col1:
+    if st.button("適用", key="apply_filter"):
+        # 現在の検索ワードで絞り込み条件を適用して再検索
+        if st.session_state.get('adj'):
+            to_results(st.session_state.adj)
+            st.rerun()
+with col2:
+    if st.button("キャンセル", key="cancel_filter"):
+        # 絞り込み条件をリセット
+        st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+        st.session_state.selected_genres = []
+        st.rerun()
 
 # サイドバー開閉ボタンを常時表示するCSSのみ適用
 st.markdown('''
@@ -223,7 +245,19 @@ def to_results(adj=None):
     st.session_state.adj = adj
     st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
     tmp = df.copy()
-    # ジャンル・スペック絞り込みはサイドバー削除のためスキップ
+    # ジャンル絞り込み
+    selected_genres = st.session_state.get('selected_genres', [])
+    if selected_genres:
+        tmp = tmp[tmp["genres_list"].apply(lambda genres: any(g in genres for g in selected_genres))]
+
+    # スペック絞り込み
+    spec_ranges = st.session_state.get('spec_ranges', {})
+    spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful", "action", "mystery"]
+    for k in spec_keys:
+        if k in spec_ranges:
+            min_val, max_val = spec_ranges[k]
+            tmp = tmp[(tmp[k] >= min_val) & (tmp[k] <= max_val)]
+
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
