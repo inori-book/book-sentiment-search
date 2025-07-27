@@ -391,8 +391,9 @@ if st.session_state.page == "home":
     # 下部テキスト
     st.markdown('<div class="custom-bottom1"><b>あなたが読んだ本の感想を投稿してください</b></div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
-    # Googleフォームボタン（<a>＋CSSで実装）
-    st.markdown('<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" class="custom-btn">Googleフォーム</a>', unsafe_allow_html=True)
+    # Googleフォームボタン（st.button＋CSSで実装）
+    if st.button("Googleフォーム", key="google_form_btn"):
+        st.markdown('<script>window.open("https://forms.gle/Eh3fYtnzSHmN3KMSA", "_blank");</script>', unsafe_allow_html=True)
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
@@ -410,64 +411,63 @@ elif st.session_state.page == "results":
     new_input = st.session_state.raw_input
     if st.button("再検索", key="search_btn_results"):
         to_results(new_input)
-    # 3. 絞り込みボタン
-    if st.button("絞り込み", key="filter_btn2"):
-        st.session_state['show_filter_expander'] = not st.session_state.get('show_filter_expander', False)
-        st.rerun()
-
-    # 絞り込みエクスパンダー
-    if st.session_state.get('show_filter_expander', False):
-        with st.expander("絞り込み条件", expanded=True):
-            st.markdown('''
-            <style>
-            h3 {
-                text-align: left !important;
-            }
-            /* 数値入力フィールドのスタイル */
-            div[data-testid="stNumberInput"] {
-                margin-bottom: 10px !important;
-            }
-            /* 数値入力フィールドのラベル */
-            div[data-testid="stNumberInput"] label {
-                font-size: 12px !important;
-                color: #FFFFFF !important;
-            }
-            /* エクスパンダー内のパディング */
-            div[data-testid="stExpander"] > div {
-                padding: 20px !important;
-            }
-            </style>
-            ''', unsafe_allow_html=True)
-            # スペック絞り込み
-            st.subheader("スペック")
-            for k, label in zip(spec_keys, spec_labels):
-                col1, col2 = st.columns(2)
-                with col1:
-                    min_val = st.number_input(f"{label} 最小", 0, 5, st.session_state.spec_ranges[k][0], key=f"min_{k}")
-                with col2:
-                    max_val = st.number_input(f"{label} 最大", 0, 5, st.session_state.spec_ranges[k][1], key=f"max_{k}")
-                st.session_state.spec_ranges[k] = (min_val, max_val)
-
-            # ジャンル絞り込み
-            st.subheader("ジャンル")
-            unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
-            st.session_state.selected_genres = st.multiselect("ジャンル", options=unique_genres, default=st.session_state.selected_genres)
-
-            # 適用・キャンセルボタン
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("適用", key="apply_filter"):
-                    # 現在の検索ワードで絞り込み条件を適用して再検索
-                    if st.session_state.get('adj'):
-                        to_results(st.session_state.adj)
-                        st.rerun()
-            with col2:
-                if st.button("キャンセル", key="cancel_filter"):
-                    # 絞り込み条件をリセット
-                    st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
-                    st.session_state.selected_genres = []
-                    st.session_state.show_filter_expander = False
-                    st.rerun()
+#   if st.button("絞り込み", key="filter_btn2"):
+#       st.session_state['show_filter_expander'] = not st.session_state.get('show_filter_expander', False)
+#       st.rerun()
+#
+#   # 絞り込みエクスパンダー
+#   if st.session_state.get('show_filter_expander', False):
+#       with st.expander("絞り込み条件", expanded=True):
+#           st.markdown('''
+#           <style>
+#           h3 {
+#               text-align: left !important;
+#           }
+#           /* 数値入力フィールドのスタイル */
+#           div[data-testid="stNumberInput"] {
+#               margin-bottom: 10px !important;
+#           }
+#           /* 数値入力フィールドのラベル */
+#           div[data-testid="stNumberInput"] label {
+#               font-size: 12px !important;
+#               color: #FFFFFF !important;
+#           }
+#           /* エクスパンダー内のパディング */
+#           div[data-testid="stExpander"] > div {
+#               padding: 20px !important;
+#           }
+#           </style>
+#           ''', unsafe_allow_html=True)
+#           # スペック絞り込み
+#           st.subheader("スペック")
+#           for k, label in zip(spec_keys, spec_labels):
+#               col1, col2 = st.columns(2)
+#               with col1:
+#                   min_val = st.number_input(f"{label} 最小", 0, 5, st.session_state.spec_ranges[k][0], key=f"min_{k}")
+#               with col2:
+#                   max_val = st.number_input(f"{label} 最大", 0, 5, st.session_state.spec_ranges[k][1], key=f"max_{k}")
+#               st.session_state.spec_ranges[k] = (min_val, max_val)
+#
+#           # ジャンル絞り込み
+#           st.subheader("ジャンル")
+#           unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
+#           st.session_state.selected_genres = st.multiselect("ジャンル", options=unique_genres, default=st.session_state.selected_genres)
+#
+#           # 適用・キャンセルボタン
+#           col1, col2 = st.columns(2)
+#           with col1:
+#               if st.button("適用", key="apply_filter"):
+#                   # 現在の検索ワードで絞り込み条件を適用して再検索
+#                   if st.session_state.get('adj'):
+#                       to_results(st.session_state.adj)
+#                       st.rerun()
+#           with col2:
+#               if st.button("キャンセル", key="cancel_filter"):
+#                   # 絞り込み条件をリセット
+#                   st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+#                   st.session_state.selected_genres = []
+#                   st.session_state.show_filter_expander = False
+#                   st.rerun()
 
     # 4. 検索結果タイトル
     adj = st.session_state.get('adj', '')
