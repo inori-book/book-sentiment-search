@@ -423,38 +423,14 @@ elif st.session_state.page == "results":
             h3 {
                 text-align: left !important;
             }
-            /* スライダーの余白と長さ調整 */
-            div[data-baseweb="slider"] {
-                margin-left: 10px !important;
-                margin-right: 10px !important;
-                padding: 10px 0 !important;
+            /* 数値入力フィールドのスタイル */
+            div[data-testid="stNumberInput"] {
+                margin-bottom: 10px !important;
             }
-            /* スライダーラベルの余白 */
-            div[data-baseweb="slider"] + div {
-                margin-left: 10px !important;
-                margin-right: 10px !important;
-            }
-            /* スライダーの目盛り表示 */
-            div[data-baseweb="slider"] .stSlider > div > div > div > div > div {
-                background: repeating-linear-gradient(
-                    to right,
-                    #666 0px,
-                    #666 1px,
-                    transparent 1px,
-                    transparent calc(100% / 5)
-                ) !important;
-            }
-            /* スライダーの値表示 */
-            div[data-baseweb="slider"] .stSlider > div > div > div > div > div::after {
-                content: "0 1 2 3 4 5";
-                position: absolute;
-                top: 20px;
-                left: 0;
-                right: 0;
-                text-align: center;
-                font-size: 10px;
-                color: #666;
-                letter-spacing: calc(100% / 5);
+            /* 数値入力フィールドのラベル */
+            div[data-testid="stNumberInput"] label {
+                font-size: 12px !important;
+                color: #FFFFFF !important;
             }
             /* エクスパンダー内のパディング */
             div[data-testid="stExpander"] > div {
@@ -465,7 +441,12 @@ elif st.session_state.page == "results":
             # スペック絞り込み
             st.subheader("スペック")
             for k, label in zip(spec_keys, spec_labels):
-                st.session_state.spec_ranges[k] = st.slider(label, 0, 5, st.session_state.spec_ranges[k], step=1, key=f"slider_{k}")
+                col1, col2 = st.columns(2)
+                with col1:
+                    min_val = st.number_input(f"{label} 最小", 0, 5, st.session_state.spec_ranges[k][0], key=f"min_{k}")
+                with col2:
+                    max_val = st.number_input(f"{label} 最大", 0, 5, st.session_state.spec_ranges[k][1], key=f"max_{k}")
+                st.session_state.spec_ranges[k] = (min_val, max_val)
 
             # ジャンル絞り込み
             st.subheader("ジャンル")
