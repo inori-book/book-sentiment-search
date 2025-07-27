@@ -425,34 +425,40 @@ elif st.session_state.page == "results":
             }
             /* スライダーの余白と長さ調整 */
             div[data-baseweb="slider"] {
-                margin-left: 20px !important;
-                margin-right: 20px !important;
+                margin-left: 10px !important;
+                margin-right: 10px !important;
                 padding: 10px 0 !important;
             }
             /* スライダーラベルの余白 */
             div[data-baseweb="slider"] + div {
-                margin-left: 20px !important;
-                margin-right: 20px !important;
+                margin-left: 10px !important;
+                margin-right: 10px !important;
             }
-            /* スライダーの目盛りと数字を表示 */
-            div[data-baseweb="slider"] .stSlider > div > div > div > div {
-                background: linear-gradient(to right, #FF9500 0%, #FF9500 20%, #FF9500 40%, #FF9500 60%, #FF9500 80%, #FF9500 100%);
-            }
-            /* スライダーの目盛りマーク */
-            div[data-baseweb="slider"] .stSlider > div > div > div > div::before {
-                content: "";
-                position: absolute;
-                width: 100%;
-                height: 2px;
+            /* スライダーの目盛り表示 */
+            div[data-baseweb="slider"] .stSlider > div > div > div > div > div {
                 background: repeating-linear-gradient(
                     to right,
                     #666 0px,
-                    #666 2px,
-                    transparent 2px,
+                    #666 1px,
+                    transparent 1px,
                     transparent calc(100% / 5)
-                );
-                top: 50%;
-                transform: translateY(-50%);
+                ) !important;
+            }
+            /* スライダーの値表示 */
+            div[data-baseweb="slider"] .stSlider > div > div > div > div > div::after {
+                content: "0 1 2 3 4 5";
+                position: absolute;
+                top: 20px;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 10px;
+                color: #666;
+                letter-spacing: calc(100% / 5);
+            }
+            /* エクスパンダー内のパディング */
+            div[data-testid="stExpander"] > div {
+                padding: 20px !important;
             }
             </style>
             ''', unsafe_allow_html=True)
