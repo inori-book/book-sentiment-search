@@ -620,15 +620,14 @@ elif st.session_state.page == "detail":
 
         # レーダーチャート
         # 「エロ」を上として時計回りに配置
-        radar_vals = [book[c] for c in ["erotic","action","mystery","painful","esthetic","paranomal","insane","grotesque"]]
-        radar_labels = ["エロ","アクション","謎","感動","耽美","霊怖","人怖","グロ"]
+        # 時計回りに配置（「エロ」を上に）
+        radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful","mystery","action"]]
+        radar_labels = ["エロ","グロ","人怖","霊怖","耽美","感動","謎","アクション"]
         fig_radar = go.Figure(
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
                 title="読み味レーダーチャート",
                 polar=dict(
-                    direction="counterclockwise",  # 反時計回りに設定
-                    sector=[0, 360],  # 全周表示
                     radialaxis=dict(
                         visible=True,
                         range=[0, 5],
