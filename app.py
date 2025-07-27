@@ -606,12 +606,10 @@ elif st.session_state.page == "detail":
             if cover_url:
                 st.image(cover_url, width=100)
         with col2:
-            if st.button("商品ページを開く（楽天ブックス）", key="rakuten_btn"):
-                url = rakuten.get("affiliateUrl") or rakuten.get("itemUrl")
-                if url:
-                    st.markdown(f'<script>window.open("{url}", "_blank");</script>', unsafe_allow_html=True)
-            if st.button("感想を投稿する（Googleフォーム）", key="google_form_detail_btn"):
-                st.markdown('<script>window.open("https://forms.gle/Eh3fYtnzSHmN3KMSA", "_blank");</script>', unsafe_allow_html=True)
+            url = rakuten.get("affiliateUrl") or rakuten.get("itemUrl")
+            if url:
+                st.link_button("商品ページを開く（楽天ブックス）", url, type="primary")
+            st.link_button("感想を投稿する（Googleフォーム）", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
         # 書誌情報
         st.write(f"**出版社**: {rakuten.get('publisher','—')}")
         st.write(f"**発行日**: {rakuten.get('pubdate','—')}")
@@ -659,6 +657,10 @@ elif st.session_state.page == "detail":
             <style>
             div[data-testid="stMarkdownContainer"] > div {
                 text-align: left !important;
+            }
+            /* ワードクラウド画像の全画面拡大ボタンを非表示 */
+            div[data-testid="stImage"] button {
+                display: none !important;
             }
             </style>
             <div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;margin:20px 0 10px 0;">感想ワードクラウド</div>
