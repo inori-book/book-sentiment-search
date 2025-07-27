@@ -392,8 +392,7 @@ if st.session_state.page == "home":
     st.markdown('<div class="custom-bottom1"><b>あなたが読んだ本の感想を投稿してください</b></div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-bottom2">あなたの感想がサービスを育てます。</div>', unsafe_allow_html=True)
     # Googleフォームボタン（st.button＋CSSで実装）
-    if st.button("Googleフォーム", key="google_form_btn"):
-        st.markdown('<script>window.open("https://forms.gle/Eh3fYtnzSHmN3KMSA", "_blank");</script>', unsafe_allow_html=True)
+    st.link_button("Googleフォーム", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
