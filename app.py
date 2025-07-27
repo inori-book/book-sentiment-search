@@ -621,10 +621,18 @@ elif st.session_state.page == "detail":
         # レーダーチャート
         # 「エロ」を上として時計回りに配置
         # 「エロ」を上として時計回りに配置
+        # 配列の順序で「エロ」を上に配置（Plotlyは最初の項目を上から開始）
         radar_vals = [book[c] for c in ["erotic","action","mystery","painful","esthetic","paranomal","insane","grotesque"]]
         radar_labels = ["エロ","アクション","謎","感動","耽美","霊怖","人怖","グロ"]
         # レーダーチャートタイトル
-        st.markdown('<div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;text-align:left;margin:20px 0 10px 0;">読み味レーダーチャート</div>', unsafe_allow_html=True)
+        st.markdown('''
+        <style>
+        div[data-testid="stMarkdownContainer"] > div {
+            text-align: left !important;
+        }
+        </style>
+        <div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;margin:20px 0 10px 0;">読み味レーダーチャート</div>
+        ''', unsafe_allow_html=True)
         fig_radar = go.Figure(
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
@@ -647,7 +655,14 @@ elif st.session_state.page == "detail":
             cnt.pop(sw, None)
         if cnt:
             # ワードクラウド生成
-            st.markdown('<div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;text-align:left;margin:20px 0 10px 0;">感想ワードクラウド</div>', unsafe_allow_html=True)
+            st.markdown('''
+            <style>
+            div[data-testid="stMarkdownContainer"] > div {
+                text-align: left !important;
+            }
+            </style>
+            <div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;margin:20px 0 10px 0;">感想ワードクラウド</div>
+            ''', unsafe_allow_html=True)
             wc = WordCloud(font_path='ipag.ttf', width=600, height=400, background_color='white', colormap='tab20').generate_from_frequencies(dict(cnt))
             fig, ax = plt.subplots(figsize=(6, 4))
             ax.imshow(wc, interpolation='bilinear')
