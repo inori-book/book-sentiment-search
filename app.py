@@ -543,6 +543,11 @@ elif st.session_state.page == "results":
         margin: 8px 10px 0 10px;
         text-align: left !important;
       }
+      /* 注意書きの左揃えを強制適用 */
+      div[data-testid="stMarkdownContainer"] .custom-note,
+      div[data-testid="stMarkdownContainer"] .custom-note * {
+        text-align: left !important;
+      }
     </style>
     ''', unsafe_allow_html=True)
     res = st.session_state.results
@@ -612,8 +617,9 @@ elif st.session_state.page == "detail":
         st.write(f"**紹介文**: {rakuten.get('description','—')}")
 
         # レーダーチャート
-        radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful","action","mystery"]]
-        radar_labels = ["エロ","グロ","人怖","霊怖","耽美","感動","アクション","謎"]
+        # 「エロ」を上として時計回りに配置
+        radar_vals = [book[c] for c in ["erotic","action","mystery","painful","esthetic","paranomal","insane","grotesque"]]
+        radar_labels = ["エロ","アクション","謎","感動","耽美","霊怖","人怖","グロ"]
         fig_radar = go.Figure(
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
