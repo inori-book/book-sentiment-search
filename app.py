@@ -362,9 +362,9 @@ if st.session_state.page == "home":
     ''', unsafe_allow_html=True)
 
     # タイトル
-    st.markdown('<div class="custom-title">YOMIAJI <span class="colon">:</span> Horror</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-title">YOMIAJI <span class="colon">:</span> βテスト版</div>', unsafe_allow_html=True)
     # リード文
-    st.markdown('<div class="custom-lead">読み味から本が検索できるサービスです。<br>怖くて耽美でインモラルな本が探せます。</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-lead">感想・読み味から本が検索できるサービスです。<br>入力したキーワードが感想に含まれている本を検索できます。</div>', unsafe_allow_html=True)
 
     # 検索フォーム（横並び）
     col1, col2 = st.columns(2, gap="small")
