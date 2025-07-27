@@ -185,42 +185,45 @@ if "raw_input" not in st.session_state:
     st.session_state.raw_input = ""
 if "raw_select" not in st.session_state:
     st.session_state.raw_select = ""
+if "show_sidebar" not in st.session_state:
+    st.session_state.show_sidebar = False
 
 # ─── 5. サイドバー: ジャンル・スペック絞り込み ─────────────────────────────
-st.sidebar.header("絞り込み")
+if st.session_state.get('show_sidebar', False):
+    st.sidebar.header("絞り込み")
 
-# スペック絞り込み
-st.sidebar.subheader("スペック")
-spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful", "action", "mystery"]
-spec_labels = ["エロ", "グロ", "人怖", "霊怖", "耽美", "感動", "アクション", "謎"]
+    # スペック絞り込み
+    st.sidebar.subheader("スペック")
+    spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful", "action", "mystery"]
+    spec_labels = ["エロ", "グロ", "人怖", "霊怖", "耽美", "感動", "アクション", "謎"]
 
-if "spec_ranges" not in st.session_state:
-    st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
-
-for k, label in zip(spec_keys, spec_labels):
-    st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, st.session_state.spec_ranges[k], key=f"slider_{k}")
-
-# ジャンル絞り込み
-st.sidebar.subheader("ジャンル")
-unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
-if "selected_genres" not in st.session_state:
-    st.session_state.selected_genres = []
-st.session_state.selected_genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=st.session_state.selected_genres)
-
-# 適用・キャンセルボタン
-col1, col2 = st.sidebar.columns(2)
-with col1:
-    if st.button("適用", key="apply_filter"):
-        # 現在の検索ワードで絞り込み条件を適用して再検索
-        if st.session_state.get('adj'):
-            to_results(st.session_state.adj)
-            st.rerun()
-with col2:
-    if st.button("キャンセル", key="cancel_filter"):
-        # 絞り込み条件をリセット
+    if "spec_ranges" not in st.session_state:
         st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+
+    for k, label in zip(spec_keys, spec_labels):
+        st.session_state.spec_ranges[k] = st.sidebar.slider(label, 0, 5, st.session_state.spec_ranges[k], key=f"slider_{k}")
+
+    # ジャンル絞り込み
+    st.sidebar.subheader("ジャンル")
+    unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
+    if "selected_genres" not in st.session_state:
         st.session_state.selected_genres = []
-        st.rerun()
+    st.session_state.selected_genres = st.sidebar.multiselect("ジャンル", options=unique_genres, default=st.session_state.selected_genres)
+
+    # 適用・キャンセルボタン
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        if st.button("適用", key="apply_filter"):
+            # 現在の検索ワードで絞り込み条件を適用して再検索
+            if st.session_state.get('adj'):
+                to_results(st.session_state.adj)
+                st.rerun()
+    with col2:
+        if st.button("キャンセル", key="cancel_filter"):
+            # 絞り込み条件をリセット
+            st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
+            st.session_state.selected_genres = []
+            st.rerun()
 
 # サイドバー開閉ボタンを常時表示するCSSのみ適用
 st.markdown('''
@@ -436,7 +439,7 @@ elif st.session_state.page == "results":
         to_results(new_input)
     # 3. 絞り込みボタン
     if st.button("絞り込み", key="filter_btn2"):
-        st.session_state['show_filter_modal'] = True
+        st.session_state['show_sidebar'] = not st.session_state.get('show_sidebar', False)
     # 4. 検索結果タイトル
     adj = st.session_state.get('adj', '')
     st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">検索結果「{adj}」</div>', unsafe_allow_html=True)
