@@ -97,7 +97,7 @@ def extract_target_words(text: str) -> list[str]:
     return results
 
 @st.cache_data
-def load_data(path: str = "sample07.csv") -> pd.DataFrame:
+def load_data(path: str = "database.csv") -> pd.DataFrame:
     df = pd.read_csv(path, dtype={"ISBN": str}).fillna("")
     df.columns = [col.lower() for col in df.columns]  # 列名を小文字に統一
     # ジャンルをリスト化
@@ -471,6 +471,7 @@ elif st.session_state.page == "results":
         font-size: 12px;
         line-height: 16px;
         margin: 8px 10px 0 10px;
+        text-align: left !important;
       }
     </style>
     ''', unsafe_allow_html=True)
@@ -541,8 +542,8 @@ elif st.session_state.page == "detail":
         st.write(f"**紹介文**: {rakuten.get('description','—')}")
 
         # レーダーチャート
-        radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful"]]
-        radar_labels = ["エロ","グロ","狂気","超常","耽美","痛み"]
+        radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful","action","mystery"]]
+        radar_labels = ["エロ","グロ","狂気","超常","耽美","痛み","アクション","謎"]
         fig_radar = go.Figure(
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
