@@ -386,6 +386,10 @@ if st.session_state.page == "home":
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
+    # 0. 戻るボタン
+    if st.button("戻る", key="back_to_home"):
+        to_home()
+        st.rerun()
     # 1. 検索ワード入力欄
     if not st.session_state.raw_input:
         st.session_state.raw_input = st.session_state.get('adj', '')
@@ -394,7 +398,7 @@ elif st.session_state.page == "results":
     )
     # 2. 検索ボタン
     new_input = st.session_state.raw_input
-    if st.button("検索", key="search_btn_results"):
+    if st.button("再検索", key="search_btn_results"):
         to_results(new_input)
     # 3. 絞り込みボタン
     if st.button("絞り込み", key="filter_btn2"):
@@ -543,7 +547,7 @@ elif st.session_state.page == "detail":
 
         # レーダーチャート
         radar_vals = [book[c] for c in ["erotic","grotesque","insane","paranomal","esthetic","painful","action","mystery"]]
-        radar_labels = ["エロ","グロ","狂気","超常","耽美","痛み","アクション","謎"]
+        radar_labels = ["エロ","グロ","人怖","霊怖","耽美","感動","アクション","謎"]
         fig_radar = go.Figure(
             data=[go.Scatterpolar(r=radar_vals, theta=radar_labels, fill='toself')],
             layout=go.Layout(
