@@ -589,7 +589,7 @@ elif st.session_state.page == "results":
 elif st.session_state.page == "detail":
     # ページトップに強制スクロール
     st.markdown('<script>window.scrollTo(0,0);</script>', unsafe_allow_html=True)
-    if st.button("戻る", on_click=to_results_page):
+    if st.button("戻る", on_click=to_results_page, key="back_to_results"):
         pass
     res = st.session_state.results
     idx = st.session_state.detail_idx
@@ -597,7 +597,7 @@ elif st.session_state.page == "detail":
         st.error("不正な選択です。")
     else:
         book = res.loc[idx]
-        st.header(f"{book['rank']}位：『{book['title']}』／{book['author']}")
+        st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">{book["rank"]}位：『{book["title"]}』／{book["author"]}</div>', unsafe_allow_html=True)
         rakuten = fetch_rakuten_book(book.get("isbn", ""))
         # 書影とボタンを横並びで表示
         col1, col2 = st.columns([1,2])
@@ -606,10 +606,12 @@ elif st.session_state.page == "detail":
             if cover_url:
                 st.image(cover_url, width=100)
         with col2:
-            btn1 = f'<a href="{rakuten.get("affiliateUrl") or rakuten.get("itemUrl")}" target="_blank" style="display:inline-block;padding:16px 32px;background:#FFC107;color:#222;font-weight:bold;border-radius:8px;text-decoration:none;margin-bottom:12px;">商品ページを開く（楽天ブックス）<span style="margin-left:8px;">&#x1F517;</span></a>'
-            btn2 = '<a href="https://forms.gle/Eh3fYtnzSHmN3KMSA" target="_blank" style="display:inline-block;padding:16px 32px;background:#FFC107;color:#222;font-weight:bold;border-radius:8px;text-decoration:none;">感想を投稿する（Googleフォーム）<span style="margin-left:8px;">&#x1F517;</span></a>'
-            st.markdown(btn1, unsafe_allow_html=True)
-            st.markdown(btn2, unsafe_allow_html=True)
+            if st.button("商品ページを開く（楽天ブックス）", key="rakuten_btn"):
+                url = rakuten.get("affiliateUrl") or rakuten.get("itemUrl")
+                if url:
+                    st.markdown(f'<script>window.open("{url}", "_blank");</script>', unsafe_allow_html=True)
+            if st.button("感想を投稿する（Googleフォーム）", key="google_form_detail_btn"):
+                st.markdown('<script>window.open("https://forms.gle/Eh3fYtnzSHmN3KMSA", "_blank");</script>', unsafe_allow_html=True)
         # 書誌情報
         st.write(f"**出版社**: {rakuten.get('publisher','—')}")
         st.write(f"**発行日**: {rakuten.get('pubdate','—')}")
@@ -625,6 +627,8 @@ elif st.session_state.page == "detail":
             layout=go.Layout(
                 title="読み味レーダーチャート",
                 polar=dict(
+                    direction="counterclockwise",  # 反時計回りに設定
+                    sector=[0, 360],  # 全周表示
                     radialaxis=dict(
                         visible=True,
                         range=[0, 5],
@@ -643,7 +647,7 @@ elif st.session_state.page == "detail":
             cnt.pop(sw, None)
         if cnt:
             # ワードクラウド生成
-            st.markdown("### 感想ワードクラウド")
+            st.markdown('<div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;text-align:left;margin:20px 0 10px 0;">感想ワードクラウド</div>', unsafe_allow_html=True)
             wc = WordCloud(font_path='ipag.ttf', width=600, height=400, background_color='white', colormap='tab20').generate_from_frequencies(dict(cnt))
             fig, ax = plt.subplots(figsize=(6, 4))
             ax.imshow(wc, interpolation='bilinear')
