@@ -418,10 +418,48 @@ elif st.session_state.page == "results":
     # 絞り込みエクスパンダー
     if st.session_state.get('show_filter_expander', False):
         with st.expander("絞り込み条件", expanded=True):
+            st.markdown('''
+            <style>
+            h3 {
+                text-align: left !important;
+            }
+            /* スライダーの余白と長さ調整 */
+            div[data-baseweb="slider"] {
+                margin-left: 20px !important;
+                margin-right: 20px !important;
+                padding: 10px 0 !important;
+            }
+            /* スライダーラベルの余白 */
+            div[data-baseweb="slider"] + div {
+                margin-left: 20px !important;
+                margin-right: 20px !important;
+            }
+            /* スライダーの目盛りと数字を表示 */
+            div[data-baseweb="slider"] .stSlider > div > div > div > div {
+                background: linear-gradient(to right, #FF9500 0%, #FF9500 20%, #FF9500 40%, #FF9500 60%, #FF9500 80%, #FF9500 100%);
+            }
+            /* スライダーの目盛りマーク */
+            div[data-baseweb="slider"] .stSlider > div > div > div > div::before {
+                content: "";
+                position: absolute;
+                width: 100%;
+                height: 2px;
+                background: repeating-linear-gradient(
+                    to right,
+                    #666 0px,
+                    #666 2px,
+                    transparent 2px,
+                    transparent calc(100% / 5)
+                );
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            </style>
+            ''', unsafe_allow_html=True)
             # スペック絞り込み
             st.subheader("スペック")
             for k, label in zip(spec_keys, spec_labels):
-                st.session_state.spec_ranges[k] = st.slider(label, 0, 5, st.session_state.spec_ranges[k], key=f"slider_{k}")
+                st.session_state.spec_ranges[k] = st.slider(label, 0, 5, st.session_state.spec_ranges[k], step=1, key=f"slider_{k}")
 
             # ジャンル絞り込み
             st.subheader("ジャンル")
