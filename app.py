@@ -292,7 +292,7 @@ if st.session_state.page == "home":
             font-size: 30px !important;
             font-weight: bold !important;
             color: #FFFFFF !important;
-            padding: 84px 10px 10px 10px !important;
+            padding: 64px 10px 10px 10px !important;
             letter-spacing: 0.02em;
             text-align: center !important;
         }}
