@@ -8,13 +8,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import re
 import unicodedata
-from dotenv import load_dotenv
 import os
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import html
-
-load_dotenv()
 
 # HTMLエスケープ関数
 def escape_html(text):
@@ -130,7 +127,7 @@ def load_stopwords(path: str = "stopwords.txt") -> set[str]:
     return words
 
 def get_rakuten_app_id():
-    return st.secrets.get("RAKUTEN_APP_ID") or os.getenv("RAKUTEN_APP_ID")
+    return st.secrets.get("RAKUTEN_APP_ID")
 
 def normalize_isbn(isbn_str: str) -> str:
     """ISBNを正規化する（ハイフンや空白を除去）"""
@@ -148,34 +145,75 @@ def fetch_rakuten_book(isbn: str) -> dict:
     normalized_isbn = normalize_isbn(isbn)
     if not normalized_isbn:
         return {}
+    
+    # APIキーの確認
+    app_id = get_rakuten_app_id()
+    if not app_id:
+        st.error("楽天APIキーが設定されていません。管理者にお問い合わせください。")
+        return {}
+    
     url = "https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404"
     params = {
         "isbn": normalized_isbn,
-        "applicationId": get_rakuten_app_id(),
+        "applicationId": app_id,
         "format": "json"
     }
+    
     try:
-        res = requests.get(url, params=params)
-        res.raise_for_status()
+        res = requests.get(url, params=params, timeout=10)  # タイムアウトを設定
+        
+        # HTTPステータスコードの確認
+        if res.status_code == 401:
+            st.error("楽天APIの認証エラーが発生しました。APIキーを確認してください。")
+            return {}
+        elif res.status_code == 429:
+            st.warning("楽天APIの利用制限に達しました。しばらく時間をおいてから再試行してください。")
+            return {}
+        elif res.status_code == 404:
+            # 404は正常なケース（本が見つからない）
+            return {}
+        elif res.status_code != 200:
+            st.error(f"楽天APIでエラーが発生しました（ステータスコード: {res.status_code}）")
+            return {}
+        
         data = res.json()
-        if data.get("Items"):
-            item = data["Items"][0]["Item"]
-            # 書影はlarge→medium→smallの順で最初に見つかったもの
-            cover_url = item.get("largeImageUrl") or item.get("mediumImageUrl") or item.get("smallImageUrl") or ""
-            return {
-                "title": item.get("title"),
-                "author": item.get("author"),
-                "publisher": item.get("publisherName"),
-                "pubdate": item.get("salesDate"),
-                "price": item.get("itemPrice") if item.get("itemPrice") is not None else "—",
-                "description": item.get("itemCaption") or "—",
-                "cover": cover_url,
-                "affiliateUrl": item.get("affiliateUrl"),
-                "itemUrl": item.get("itemUrl")
-            }
+        
+        # APIレスポンスの確認
+        if not data.get("Items"):
+            # 本が見つからない場合は正常なケース
+            return {}
+        
+        item = data["Items"][0]["Item"]
+        # 書影はlarge→medium→smallの順で最初に見つかったもの
+        cover_url = item.get("largeImageUrl") or item.get("mediumImageUrl") or item.get("smallImageUrl") or ""
+        
+        return {
+            "title": item.get("title"),
+            "author": item.get("author"),
+            "publisher": item.get("publisherName"),
+            "pubdate": item.get("salesDate"),
+            "price": item.get("itemPrice") if item.get("itemPrice") is not None else "—",
+            "description": item.get("itemCaption") or "—",
+            "cover": cover_url,
+            "affiliateUrl": item.get("affiliateUrl"),
+            "itemUrl": item.get("itemUrl")
+        }
+        
+    except requests.exceptions.Timeout:
+        st.warning("楽天APIへのリクエストがタイムアウトしました。しばらく時間をおいてから再試行してください。")
+        return {}
+    except requests.exceptions.ConnectionError:
+        st.error("楽天APIへの接続に失敗しました。インターネット接続を確認してください。")
+        return {}
+    except requests.exceptions.RequestException as e:
+        st.error(f"楽天APIへのリクエストでエラーが発生しました: {str(e)}")
+        return {}
+    except json.JSONDecodeError:
+        st.error("楽天APIからのレスポンスの形式が不正です。")
+        return {}
     except Exception as e:
-        print(e)
-    return {}
+        st.error(f"予期しないエラーが発生しました: {str(e)}")
+        return {}
 
 STOPWORDS = load_stopwords()
 all_keywords = sorted({kw for lst in df["keywords"] for kw in lst})
