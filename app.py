@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import json
 from janome.tokenizer import Tokenizer
 from collections import Counter
 import plotly.express as px
@@ -11,8 +12,16 @@ from dotenv import load_dotenv
 import os
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import html
 
 load_dotenv()
+
+# HTMLエスケープ関数
+def escape_html(text):
+    """HTMLエスケープを行う"""
+    if text is None:
+        return ""
+    return html.escape(str(text))
 
 st.markdown('''
 <style>
@@ -470,7 +479,8 @@ elif st.session_state.page == "results":
 
     # 4. 検索結果タイトル
     adj = st.session_state.get('adj', '')
-    st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">検索結果「{adj}」</div>', unsafe_allow_html=True)
+    escaped_adj = escape_html(adj)
+    st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">検索結果「{escaped_adj}」</div>', unsafe_allow_html=True)
     # 5. 注意書き
     st.markdown('<div class="custom-note">※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。</div>', unsafe_allow_html=True)
     # 6. 検索結果カード
@@ -558,16 +568,20 @@ elif st.session_state.page == "results":
             placeholder_cover = "https://via.placeholder.com/116x105/D9D9D9/FFFFFF?text=No+Image"
             cover_url = rakuten.get("cover") or placeholder_cover
             genres = row.get('genres_list', [])
-            genre_tags_html = "".join([f'<span class=\"genre-tag\">{g}</span>' for g in genres])
+            # ジャンルタグのHTMLエスケープ
+            escaped_genres = [escape_html(g) for g in genres]
+            genre_tags_html = "".join([f'<span class=\"genre-tag\">{g}</span>' for g in escaped_genres])
             # タイトル行のみクリッカブル
-            if st.button(f"{row['rank']}位：『{row['title']}』／{row['author']}", key=f"title_btn_{i}"):
+            escaped_title = escape_html(row['title'])
+            escaped_author = escape_html(row['author'])
+            if st.button(f"{row['rank']}位：『{escaped_title}』／{escaped_author}", key=f"title_btn_{i}"):
                 to_detail(i)
                 st.rerun()
             card_html = f'''
             <div class="result-card">
                 <div class="card-content-row">
                     <div class="card-thumbnail">
-                        <img src="{cover_url}" alt="{row['title']}" />
+                        <img src="{cover_url}" alt="{escaped_title}" />
                     </div>
                     <div class="card-meta">
                         <div>キーワード登場回数：{row['count']}回</div>
@@ -575,9 +589,9 @@ elif st.session_state.page == "results":
                         <div class="genre-tags-container">
                             {genre_tags_html}
                         </div>
-                        <div>出版社：{rakuten.get('publisher', '—')}</div>
-                        <div>発行日：{rakuten.get('pubdate', '—')}</div>
-                        <div>定価：{rakuten.get('price', '—')}円</div>
+                        <div>出版社：{escape_html(rakuten.get('publisher', '—'))}</div>
+                        <div>発行日：{escape_html(rakuten.get('pubdate', '—'))}</div>
+                        <div>定価：{escape_html(rakuten.get('price', '—'))}円</div>
                     </div>
                 </div>
             </div>
@@ -596,7 +610,9 @@ elif st.session_state.page == "detail":
         st.error("不正な選択です。")
     else:
         book = res.loc[idx]
-        st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">{book["rank"]}位：『{book["title"]}』／{book["author"]}</div>', unsafe_allow_html=True)
+        escaped_title = escape_html(book["title"])
+        escaped_author = escape_html(book["author"])
+        st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">{book["rank"]}位：『{escaped_title}』／{escaped_author}</div>', unsafe_allow_html=True)
         rakuten = fetch_rakuten_book(book.get("isbn", ""))
         # 書影とボタンを横並びで表示
         col1, col2 = st.columns([1,2])
@@ -610,10 +626,10 @@ elif st.session_state.page == "detail":
                 st.link_button("商品ページを開く（楽天ブックス）", url, type="primary")
             st.link_button("感想を投稿する（Googleフォーム）", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
         # 書誌情報
-        st.write(f"**出版社**: {rakuten.get('publisher','—')}")
-        st.write(f"**発行日**: {rakuten.get('pubdate','—')}")
-        st.write(f"**定価**: {rakuten.get('price','—')} 円")
-        st.write(f"**紹介文**: {rakuten.get('description','—')}")
+        st.write(f"**出版社**: {escape_html(rakuten.get('publisher','—'))}")
+        st.write(f"**発行日**: {escape_html(rakuten.get('pubdate','—'))}")
+        st.write(f"**定価**: {escape_html(rakuten.get('price','—'))} 円")
+        st.write(f"**紹介文**: {escape_html(rakuten.get('description','—'))}")
 
         # レーダーチャート
         # 「エロ」を上として時計回りに配置
