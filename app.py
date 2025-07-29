@@ -330,6 +330,48 @@ if st.session_state.page == "home":
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
+    # カスタムCSSで背景・フォント・色・余白などを調整
+    st.markdown(f'''
+        <style>
+        .stApp {{
+            background: #1E1E1E !important;
+        }}
+        /* 全体幅375px中央寄せ */
+        .main .block-container {{
+            max-width: 375px !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }}
+        /* 共通ボタンデザインをstButtonに強制適用 */
+        div.stButton > button {{
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: #000000 !important;
+            background: #FF9500 !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            padding: 16px 0 !important;
+            margin: 20px 10px 20px 10px !important;
+            border: none !important;
+            cursor: pointer !important;
+        }}
+        /* 注意書きのスタイル */
+        .custom-note {{
+            font-family: 'Inter', sans-serif;
+            color: #FFFFFF;
+            font-size: 12px;
+            line-height: 16px;
+            padding: 10px;
+            text-align: left !important;
+        }}
+        div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {{
+            text-align: left !important;
+        }}
+        </style>
+    ''', unsafe_allow_html=True)
+    
     # 0. 戻るボタン
     if st.button("戻る", key="back_to_home"):
         to_home()
@@ -466,8 +508,38 @@ elif st.session_state.page == "results":
             '''
             st.markdown(card_html, unsafe_allow_html=True)
 
-# ─── 9. 詳細画面 ───────────────────────────────────────
+# ─── 9. 詳細画面 ─────────────────────────────────────
 elif st.session_state.page == "detail":
+    # カスタムCSSで背景・フォント・色・余白などを調整
+    st.markdown(f'''
+        <style>
+        .stApp {{
+            background: #1E1E1E !important;
+        }}
+        /* 全体幅375px中央寄せ */
+        .main .block-container {{
+            max-width: 375px !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }}
+        /* 共通ボタンデザインをstButtonに強制適用 */
+        div.stButton > button {{
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: #000000 !important;
+            background: #FF9500 !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            padding: 16px 0 !important;
+            margin: 20px 10px 20px 10px !important;
+            border: none !important;
+            cursor: pointer !important;
+        }}
+        </style>
+    ''', unsafe_allow_html=True)
+    
     # ページトップに強制スクロール
     st.markdown('<script>window.scrollTo(0,0);</script>', unsafe_allow_html=True)
     if st.button("戻る", on_click=to_results_page, key="back_to_results"):
