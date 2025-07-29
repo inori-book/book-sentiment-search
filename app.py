@@ -4,7 +4,6 @@ import requests
 import json
 from janome.tokenizer import Tokenizer
 from collections import Counter
-import plotly.express as px
 import plotly.graph_objects as go
 import re
 import unicodedata
@@ -19,57 +18,6 @@ def escape_html(text):
     if text is None:
         return ""
     return html.escape(str(text))
-
-st.markdown('''
-<style>
-  /* Streamlit 標準の背景色をクリア */
-  .stApp, .css-1d391kg, .css-k1vhr4 {
-    background: none !important;
-  }
-  /* Base64 埋め込みした背景画像を全体に敷く */
-  .stApp {
-    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAYACAIAAABn4K39AADUTGNhQlgAANRManVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAA...（省略）...kTTLmo%") !important;
-    background-size: cover !important;
-    background-position: center !important;
-  }
-  .custom-btn {
-    display: block;
-    width: 355px;
-    max-width: 100%;
-    margin: 20px auto;
-    background: #FFA500;
-    color: #000;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 8px;
-    text-align: center;
-    padding: 16px 0;
-    text-decoration: none;
-    border: none;
-  }
-  .custom-btn:hover {
-    opacity: 0.9;
-  }
-  div.stButton > button {
-    width: 355px !important;
-    max-width: 100% !important;
-    margin: 20px auto !important;
-    background: #FFA500 !important;
-    color: #000 !important;
-    font-weight: bold !important;
-    font-size: 16px !important;
-    border-radius: 8px !important;
-    text-align: center !important;
-    padding: 16px 0 !important;
-    border: none !important;
-  }
-  /* タイトル・リード文・下部テキストの親divも中央揃え */
-  div[data-testid="stMarkdownContainer"] > div,
-  .custom-title, .custom-lead, .custom-bottom1, .custom-bottom2 {
-    text-align: center !important;
-  }
-</style>
-''', unsafe_allow_html=True)
 
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
@@ -232,34 +180,6 @@ if "raw_input" not in st.session_state:
     st.session_state.raw_input = ""
 if "raw_select" not in st.session_state:
     st.session_state.raw_select = ""
-if "show_filter_expander" not in st.session_state:
-    st.session_state.show_filter_expander = False
-
-# ─── 5. サイドバー: ジャンル・スペック絞り込み ─────────────────────────────
-# 絞り込み機能の初期化
-spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful", "action", "mystery"]
-spec_labels = ["エロ", "グロ", "人怖", "霊怖", "耽美", "感動", "アクション", "謎"]
-
-if "spec_ranges" not in st.session_state:
-    st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
-if "selected_genres" not in st.session_state:
-    st.session_state.selected_genres = []
-
-# サイドバー開閉ボタンを常時表示するCSSのみ適用
-st.markdown('''
-    <style>
-    button[aria-label="Open sidebar"] {
-        display: block !important;
-        opacity: 1 !important;
-        z-index: 1001 !important;
-    }
-    /* スペックスライダーの余白調整 */
-    div[data-baseweb="slider"] {
-        margin-left: 8px !important;
-        margin-right: 8px !important;
-    }
-    </style>
-''', unsafe_allow_html=True)
 
 # ─── 6. ページ遷移用関数 ─────────────────────────────────────
 def to_results(adj=None):
@@ -268,19 +188,6 @@ def to_results(adj=None):
     st.session_state.adj = adj
     st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
     tmp = df.copy()
-    # ジャンル絞り込み
-    selected_genres = st.session_state.get('selected_genres', [])
-    if selected_genres:
-        tmp = tmp[tmp["genres_list"].apply(lambda genres: any(g in genres for g in selected_genres))]
-
-    # スペック絞り込み
-    spec_ranges = st.session_state.get('spec_ranges', {})
-    spec_keys = ["erotic", "grotesque", "insane", "paranomal", "esthetic", "painful", "action", "mystery"]
-    for k in spec_keys:
-        if k in spec_ranges:
-            min_val, max_val = spec_ranges[k]
-            tmp = tmp[(tmp[k] >= min_val) & (tmp[k] <= max_val)]
-
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
@@ -304,29 +211,9 @@ if st.session_state.page == "home":
     # カスタムCSSで背景・フォント・色・余白などを調整
     st.markdown(f'''
         <style>
-        /* 背景画像＋黒レイヤー */
+        /* シンプルな背景色 */
         .stApp {{
-            position: relative !important;
-            min-height: 100vh !important;
-            background: url('/background.png'), url('background.png') !important;
-            background-size: cover !important;
-            background-position: center !important;
-            background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
-        }}
-        .stApp::before, body::before {{
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.2);
-            z-index: 0;
-            pointer-events: none;
-        }}
-        /* メインコンテンツを前面に */
-        .main, .block-container, .css-18e3th9, .css-1d391kg {{
-            position: relative;
-            z-index: 1;
+            background: #1E1E1E !important;
         }}
         /* 全体幅375px中央寄せ */
         div[data-testid="stVerticalBlock"] > div:first-child {{
@@ -457,63 +344,6 @@ elif st.session_state.page == "results":
     new_input = st.session_state.raw_input
     if st.button("再検索", key="search_btn_results"):
         to_results(new_input)
-#   if st.button("絞り込み", key="filter_btn2"):
-#       st.session_state['show_filter_expander'] = not st.session_state.get('show_filter_expander', False)
-#       st.rerun()
-#
-#   # 絞り込みエクスパンダー
-#   if st.session_state.get('show_filter_expander', False):
-#       with st.expander("絞り込み条件", expanded=True):
-#           st.markdown('''
-#           <style>
-#           h3 {
-#               text-align: left !important;
-#           }
-#           /* 数値入力フィールドのスタイル */
-#           div[data-testid="stNumberInput"] {
-#               margin-bottom: 10px !important;
-#           }
-#           /* 数値入力フィールドのラベル */
-#           div[data-testid="stNumberInput"] label {
-#               font-size: 12px !important;
-#               color: #FFFFFF !important;
-#           }
-#           /* エクスパンダー内のパディング */
-#           div[data-testid="stExpander"] > div {
-#               padding: 20px !important;
-#           }
-#           </style>
-#           ''', unsafe_allow_html=True)
-#           # スペック絞り込み
-#           st.subheader("スペック")
-#           for k, label in zip(spec_keys, spec_labels):
-#               col1, col2 = st.columns(2)
-#               with col1:
-#                   min_val = st.number_input(f"{label} 最小", 0, 5, st.session_state.spec_ranges[k][0], key=f"min_{k}")
-#               with col2:
-#                   max_val = st.number_input(f"{label} 最大", 0, 5, st.session_state.spec_ranges[k][1], key=f"max_{k}")
-#               st.session_state.spec_ranges[k] = (min_val, max_val)
-#
-#           # ジャンル絞り込み
-#           st.subheader("ジャンル")
-#           unique_genres = sorted({g for lst in df["genres_list"] for g in lst})
-#           st.session_state.selected_genres = st.multiselect("ジャンル", options=unique_genres, default=st.session_state.selected_genres)
-#
-#           # 適用・キャンセルボタン
-#           col1, col2 = st.columns(2)
-#           with col1:
-#               if st.button("適用", key="apply_filter"):
-#                   # 現在の検索ワードで絞り込み条件を適用して再検索
-#                   if st.session_state.get('adj'):
-#                       to_results(st.session_state.adj)
-#                       st.rerun()
-#           with col2:
-#               if st.button("キャンセル", key="cancel_filter"):
-#                   # 絞り込み条件をリセット
-#                   st.session_state.spec_ranges = {k: (0, 5) for k in spec_keys}
-#                   st.session_state.selected_genres = []
-#                   st.session_state.show_filter_expander = False
-#                   st.rerun()
 
     # 4. 検索結果タイトル
     adj = st.session_state.get('adj', '')
