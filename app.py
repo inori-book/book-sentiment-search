@@ -11,6 +11,7 @@ import os
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import html
+from datetime import datetime
 
 # HTMLエスケープ関数
 def escape_html(text):
@@ -26,7 +27,7 @@ st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wi
 # 抽出対象の品詞をリスト化（将来的に増やしやすい形）
 POS_TARGETS = ["形容詞", "形容動詞"]
 
-@st.cache_data
+@st.cache_data(ttl=3600)  # 1時間でキャッシュを無効化
 def load_abstractwords(path: str = "abstractwords.txt") -> set[str]:
     try:
         with open(path, encoding="utf-8") as f:
@@ -50,8 +51,19 @@ def extract_target_words(text: str) -> list[str]:
             results.append(word)
     return results
 
-@st.cache_data
+def get_file_hash(path: str) -> str:
+    """ファイルの更新日時とサイズからハッシュを生成"""
+    try:
+        stat = os.stat(path)
+        return f"{stat.st_mtime}_{stat.st_size}"
+    except OSError:
+        return "file_not_found"
+
+@st.cache_data(ttl=3600)  # 1時間でキャッシュを無効化
 def load_data(path: str = "database.csv") -> pd.DataFrame:
+    # ファイルの更新日時をチェック
+    file_hash = get_file_hash(path)
+    
     df = pd.read_csv(path, dtype={"ISBN": str}).fillna("")
     df.columns = [col.lower() for col in df.columns]  # 列名を小文字に統一
     # ジャンルをリスト化
@@ -60,12 +72,12 @@ def load_data(path: str = "database.csv") -> pd.DataFrame:
     global tokenizer
     tokenizer = Tokenizer()
     df["keywords"] = df["review"].apply(extract_target_words)
-    return df
+    return df, file_hash
 
-df = load_data()
+df, file_hash = load_data()
 
 # ─── 3. ストップワード外部化 & 候補形容詞 ─────────────────────────────
-@st.cache_data
+@st.cache_data(ttl=3600)  # 1時間でキャッシュを無効化
 def load_stopwords(path: str = "stopwords.txt") -> set[str]:
     try:
         with open(path, encoding="utf-8") as f:
@@ -86,7 +98,7 @@ def normalize_isbn(isbn_str: str) -> str:
     return re.sub(r"[^0-9Xx]", "", s)
 
 # 楽天ブックスAPIで書誌情報を取得
-@st.cache_resource(show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)  # 24時間でキャッシュを無効化
 def fetch_rakuten_book(isbn: str) -> dict:
     if not isbn:
         return {}
