@@ -277,6 +277,8 @@ def to_results(adj=None):
         adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
     st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
+    # 検索実行時にCSS再読み込みフラグをリセット
+    st.session_state.css_loaded = False
     tmp = df.copy()
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
