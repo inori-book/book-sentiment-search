@@ -20,8 +20,75 @@ def escape_html(text):
         return ""
     return html.escape(str(text))
 
+# フォントファイルの存在確認とフォールバック処理
+def get_font_path():
+    """利用可能なフォントパスを取得する"""
+    # 優先順位1: プロジェクト内のipag.ttf
+    font_paths = [
+        "ipag.ttf",
+        "/mnt/data/ipag.ttf",  # Streamlit Cloud用
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Linux標準
+        "/System/Library/Fonts/Arial.ttf",  # macOS標準
+        "C:/Windows/Fonts/arial.ttf"  # Windows標準
+    ]
+    
+    for path in font_paths:
+        if os.path.exists(path):
+            return path
+    
+    # どのフォントも見つからない場合はNoneを返す（WordCloudがデフォルトフォントを使用）
+    return None
+
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
+
+# CSS読み込み管理
+if "css_loaded" not in st.session_state:
+    st.session_state.css_loaded = False
+
+# 共通CSSを一度だけ読み込む
+if not st.session_state.css_loaded:
+    st.markdown('''
+        <style>
+        .stApp {
+            background: #1E1E1E !important;
+        }
+        /* 全体幅375px中央寄せ */
+        .main .block-container {
+            max-width: 375px !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }
+        /* 共通ボタンデザインをstButtonに強制適用 */
+        div.stButton > button {
+            width: 100% !important;
+            text-align: center !important;
+            font-size: 16px !important;
+            font-weight: bold !important;
+            color: #000000 !important;
+            background: #FF9500 !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            padding: 16px 0 !important;
+            margin: 20px 10px 20px 10px !important;
+            border: none !important;
+            cursor: pointer !important;
+        }
+        /* 注意書きのスタイル */
+        .custom-note {
+            font-family: 'Inter', sans-serif;
+            color: #FFFFFF;
+            font-size: 12px;
+            line-height: 16px;
+            padding: 10px;
+            text-align: left !important;
+        }
+        div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {
+            text-align: left !important;
+        }
+        </style>
+    ''', unsafe_allow_html=True)
+    st.session_state.css_loaded = True
 
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
 # 抽出対象の品詞をリスト化（将来的に増やしやすい形）
@@ -218,54 +285,41 @@ def to_home():
 def to_results_page():
     st.session_state.page = "results"
 
-# ─── 7. ホーム画面 ───────────────────────────────────────
-if st.session_state.page == "home":
-    # カスタムCSSで背景・フォント・色・余白などを調整
-    st.markdown(f'''
+# ─── 7. TOP画面 ───────────────────────────────────────
+elif st.session_state.page == "home":
+    # TOP画面専用CSS
+    st.markdown('''
         <style>
-        /* シンプルな背景色 */
-        .stApp {{
-            background: #1E1E1E !important;
-        }}
-        /* 全体幅375px中央寄せ */
-        div[data-testid="stVerticalBlock"] > div:first-child {{
-            max-width: 375px;
-            margin: 0 auto;
-            background: transparent;
-        }}
+        /* タイトル・リード文・下部テキストの親divも中央揃え */
+        div[data-testid="stMarkdownContainer"] > div,
+        .custom-title, .custom-lead, .custom-bottom1, .custom-bottom2 {
+            text-align: center !important;
+        }
         /* タイトル */
-        .custom-title {{
+        .custom-title {
             font-size: 30px !important;
             font-weight: bold !important;
             color: #FFFFFF !important;
             padding: 64px 10px 10px 10px !important;
             letter-spacing: 0.02em;
             text-align: center !important;
-        }}
-        .custom-title span.colon {{
-            color: #FF9500 !important;
-        }}
-        /* リード文・下部テキスト */
-        .custom-lead, .custom-bottom1, .custom-bottom2 {{
+        }
+        /* リード文 */
+        .custom-lead {
             font-size: 16px !important;
             color: #FFFFFF !important;
             padding: 10px !important;
+            line-height: 24px !important;
             text-align: center !important;
-        }}
-        .custom-bottom1 {{
-            padding-top: 0 !important;
-        }}
-        .custom-bottom2 {{
-            padding-top: 0 !important;
-        }}
-        /* 検索フォームラベル */
-        .custom-label {{
+        }
+        /* ラベル */
+        .custom-label {
             font-size: 14px !important;
             color: #FFFFFF !important;
             padding: 10px 10px 0 10px !important;
-        }}
+        }
         /* テキストエリア・プルダウン */
-        .custom-input, .custom-select {{
+        .custom-input, .custom-select {
             width: 167px !important;
             height: 88px !important;
             padding: 10px !important;
@@ -275,35 +329,20 @@ if st.session_state.page == "home":
             border-radius: 8px !important;
             border: 1px solid #94A3B8 !important;
             margin: 0 5px 0 0 !important;
-        }}
+        }
         /* プレースホルダー色 */
-        input::placeholder, textarea::placeholder, .custom-select option:disabled {{
+        input::placeholder, textarea::placeholder, .custom-select option:disabled {
             color: #94A3B8 !important;
             opacity: 1 !important;
-        }}
-        /* 共通ボタンデザインをstButtonに強制適用 */
-        div.stButton > button {{
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 16px !important;
-            font-weight: bold !important;
-            color: #000000 !important;
-            background: #FF9500 !important;
-            border-radius: 8px !important;
-            text-decoration: none !important;
-            padding: 16px 0 !important;
-            margin: 20px 10px 20px 10px !important;
-            border: none !important;
-            cursor: pointer !important;
-        }}
+        }
         /* 区切り線 */
-        .custom-divider {{
+        .custom-divider {
             width: 355px;
             height: 1px;
             background: #FFFFFF;
             opacity: 0.3;
             margin: 116px 10px 10px 10px !important;
-        }}
+        }
         </style>
     ''', unsafe_allow_html=True)
 
@@ -342,45 +381,21 @@ if st.session_state.page == "home":
 
 # ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
-    # カスタムCSSで背景・フォント・色・余白などを調整
-    st.markdown(f'''
+    # 検索結果画面専用CSS
+    st.markdown('''
         <style>
-        .stApp {{
-            background: #1E1E1E !important;
-        }}
-        /* 全体幅375px中央寄せ */
-        .main .block-container {{
-            max-width: 375px !important;
-            padding: 0 !important;
-            margin: 0 auto !important;
-        }}
-        /* 共通ボタンデザインをstButtonに強制適用 */
-        div.stButton > button {{
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 16px !important;
-            font-weight: bold !important;
-            color: #000000 !important;
-            background: #FF9500 !important;
-            border-radius: 8px !important;
-            text-decoration: none !important;
-            padding: 16px 0 !important;
-            margin: 20px 10px 20px 10px !important;
-            border: none !important;
-            cursor: pointer !important;
-        }}
         /* 注意書きのスタイル */
-        .custom-note {{
+        .custom-note {
             font-family: 'Inter', sans-serif;
             color: #FFFFFF;
             font-size: 12px;
             line-height: 16px;
             padding: 10px;
             text-align: left !important;
-        }}
-        div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {{
+        }
+        div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {
             text-align: left !important;
-        }}
+        }
         </style>
     ''', unsafe_allow_html=True)
     
@@ -522,36 +537,6 @@ elif st.session_state.page == "results":
 
 # ─── 9. 詳細画面 ─────────────────────────────────────
 elif st.session_state.page == "detail":
-    # カスタムCSSで背景・フォント・色・余白などを調整
-    st.markdown(f'''
-        <style>
-        .stApp {{
-            background: #1E1E1E !important;
-        }}
-        /* 全体幅375px中央寄せ */
-        .main .block-container {{
-            max-width: 375px !important;
-            padding: 0 !important;
-            margin: 0 auto !important;
-        }}
-        /* 共通ボタンデザインをstButtonに強制適用 */
-        div.stButton > button {{
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 16px !important;
-            font-weight: bold !important;
-            color: #000000 !important;
-            background: #FF9500 !important;
-            border-radius: 8px !important;
-            text-decoration: none !important;
-            padding: 16px 0 !important;
-            margin: 20px 10px 20px 10px !important;
-            border: none !important;
-            cursor: pointer !important;
-        }}
-        </style>
-    ''', unsafe_allow_html=True)
-    
     # ページトップに強制スクロール
     st.markdown('<script>window.scrollTo(0,0);</script>', unsafe_allow_html=True)
     if st.button("戻る", on_click=to_results_page, key="back_to_results"):
@@ -632,7 +617,7 @@ elif st.session_state.page == "detail":
             </style>
             <div style="font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;margin:20px 0 10px 0;">感想ワードクラウド</div>
             ''', unsafe_allow_html=True)
-            wc = WordCloud(font_path='ipag.ttf', width=600, height=400, background_color='white', colormap='tab20').generate_from_frequencies(dict(cnt))
+            wc = WordCloud(font_path=get_font_path(), width=600, height=400, background_color='white', colormap='tab20').generate_from_frequencies(dict(cnt))
             fig, ax = plt.subplots(figsize=(6, 4))
             ax.imshow(wc, interpolation='bilinear')
             ax.axis('off')
