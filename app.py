@@ -285,8 +285,9 @@ def to_home():
 def to_results_page():
     st.session_state.page = "results"
 
-# ─── 7. TOP画面 ───────────────────────────────────────
-elif st.session_state.page == "home":
+# ─── 7. メインページ分岐 ─────────────────────────────────────
+if st.session_state.page == "home":
+    # ─── TOP画面 ───────────────────────────────────────
     # TOP画面専用CSS
     st.markdown('''
         <style>
@@ -379,8 +380,8 @@ elif st.session_state.page == "home":
     # Googleフォームボタン（st.button＋CSSで実装）
     st.link_button("Googleフォーム", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
 
-# ─── 8. 検索結果画面 ───────────────────────────────────
 elif st.session_state.page == "results":
+    # ─── 検索結果画面 ───────────────────────────────────
     # 検索結果画面専用CSS
     st.markdown('''
         <style>
@@ -486,23 +487,22 @@ elif st.session_state.page == "results":
         color: #FFFFFF;
         font-size: 12px;
         line-height: 16px;
-        margin: 8px 10px 0 10px;
+        padding: 10px;
         text-align: left !important;
       }
-      /* 注意書きの左揃えを強制適用 */
-      div[data-testid="stMarkdownContainer"] .custom-note,
-      div[data-testid="stMarkdownContainer"] .custom-note * {
+      div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {
         text-align: left !important;
       }
     </style>
     ''', unsafe_allow_html=True)
+    
     res = st.session_state.results
     if res.empty:
-        st.warning("該当する本がありませんでした。")
+        st.markdown('<div style="text-align:center;color:#FFFFFF;font-size:16px;margin:50px 0;">該当する本がありませんでした。</div>', unsafe_allow_html=True)
     else:
-        for i, row in res.iterrows():
+        for i, (_, row) in enumerate(res.iterrows()):
             rakuten = fetch_rakuten_book(row.get("isbn", ""))
-            placeholder_cover = "https://via.placeholder.com/116x105/D9D9D9/FFFFFF?text=No+Image"
+            placeholder_cover = "https://via.placeholder.com/116x105/666666/FFFFFF?text=No+Image"
             cover_url = rakuten.get("cover") or placeholder_cover
             genres = row.get('genres_list', [])
             # ジャンルタグのHTMLエスケープ
@@ -535,8 +535,8 @@ elif st.session_state.page == "results":
             '''
             st.markdown(card_html, unsafe_allow_html=True)
 
-# ─── 9. 詳細画面 ─────────────────────────────────────
 elif st.session_state.page == "detail":
+    # ─── 詳細画面 ─────────────────────────────────────
     # ページトップに強制スクロール
     st.markdown('<script>window.scrollTo(0,0);</script>', unsafe_allow_html=True)
     if st.button("戻る", on_click=to_results_page, key="back_to_results"):
@@ -624,17 +624,3 @@ elif st.session_state.page == "detail":
             st.pyplot(fig)
         else:
             st.info("有効なワードが見つかりませんでした。")
-        # Twitter API連携部分は初期スコープ外のためコメントアウト
-        # st.markdown("## 🐦 読了ツイート（最新5件）")
-        # tweets = fetch_read_tweets(book['title'])
-        # if tweets:
-        #     for tw in tweets:
-        #         tweet_md = (
-        #             f"> {tw['text']}\n"
-        #             f"— {tw['author_name']} (@{tw['author']}) {tw['created_at'].date()}, ❤️{tw['likes']}"
-        #         )
-        #         st.markdown(tweet_md)
-        #         st.markdown("---")
-        # else:
-        #     st.info("該当する読了ツイートが見つかりませんでした。")
-        # 戻る
