@@ -46,6 +46,15 @@ st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wi
 if "css_loaded" not in st.session_state:
     st.session_state.css_loaded = False
 
+# ページ遷移時にCSSを再読み込み
+if "current_page" not in st.session_state:
+    st.session_state.current_page = None
+
+current_page = st.session_state.get('page', 'home')
+if st.session_state.current_page != current_page:
+    st.session_state.css_loaded = False
+    st.session_state.current_page = current_page
+
 # 共通CSSを一度だけ読み込む
 if not st.session_state.css_loaded:
     st.markdown('''
@@ -60,7 +69,9 @@ if not st.session_state.css_loaded:
             margin: 0 auto !important;
         }
         /* 共通ボタンデザインをstButtonに強制適用 */
-        div.stButton > button {
+        div[data-testid="stButton"] > button,
+        div.stButton > button,
+        button[data-testid="baseButton-secondary"] {
             width: 100% !important;
             text-align: center !important;
             font-size: 16px !important;
