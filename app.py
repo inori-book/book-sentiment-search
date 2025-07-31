@@ -11,7 +11,6 @@ import os
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import html
-from datetime import datetime
 
 # HTMLエスケープ関数
 def escape_html(text):
@@ -42,21 +41,7 @@ def get_font_path():
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS読み込み管理
-if "css_loaded" not in st.session_state:
-    st.session_state.css_loaded = False
-
-# ページ遷移時にCSSを再読み込み
-if "current_page" not in st.session_state:
-    st.session_state.current_page = None
-
-current_page = st.session_state.get('page', 'home')
-if st.session_state.current_page != current_page:
-    st.session_state.css_loaded = False
-    st.session_state.current_page = current_page
-
-# 共通CSSを一度だけ読み込む
-if not st.session_state.css_loaded:
+# 共通CSSを毎回読み込む（安定性を優先）
     st.markdown('''
         <style>
         .stApp {
@@ -152,7 +137,7 @@ def load_data(path: str = "database.csv") -> pd.DataFrame:
     df["keywords"] = df["review"].apply(extract_target_words)
     return df, file_hash
 
-df, file_hash = load_data()
+df, _ = load_data()
 
 # ─── 3. ストップワード外部化 & 候補形容詞 ─────────────────────────────
 @st.cache_data(ttl=3600)  # 1時間でキャッシュを無効化
@@ -277,8 +262,6 @@ def to_results(adj=None):
         adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
     st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
-    # 検索実行時にCSS再読み込みフラグをリセット
-    st.session_state.css_loaded = False
     tmp = df.copy()
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
@@ -295,8 +278,7 @@ def to_detail(idx: int):
 def to_home():
     st.session_state.page = "home"
 
-def to_results_page():
-    st.session_state.page = "results"
+
 
 # ─── 7. メインページ分岐 ─────────────────────────────────────
 if st.session_state.page == "home":
