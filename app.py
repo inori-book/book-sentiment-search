@@ -533,8 +533,9 @@ elif st.session_state.page == "detail":
     # ─── 詳細画面 ─────────────────────────────────────
     # ページトップに強制スクロール
     st.markdown('<script>window.scrollTo(0,0);</script>', unsafe_allow_html=True)
-    if st.button("戻る", on_click=to_results_page, key="back_to_results"):
-        pass
+    if st.button("戻る", key="back_to_results"):
+        st.session_state.page = "results"
+        st.rerun()
     res = st.session_state.results
     idx = st.session_state.detail_idx
     if idx is None or idx >= len(res):
