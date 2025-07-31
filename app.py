@@ -42,49 +42,48 @@ def get_font_path():
 st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
 
 # 共通CSSを毎回読み込む（安定性を優先）
-    st.markdown('''
-        <style>
-        .stApp {
-            background: #1E1E1E !important;
-        }
-        /* 全体幅375px中央寄せ */
-        .main .block-container {
-            max-width: 375px !important;
-            padding: 0 !important;
-            margin: 0 auto !important;
-        }
-        /* 共通ボタンデザインをstButtonに強制適用 */
-        div[data-testid="stButton"] > button,
-        div.stButton > button,
-        button[data-testid="baseButton-secondary"] {
-            width: 100% !important;
-            text-align: center !important;
-            font-size: 16px !important;
-            font-weight: bold !important;
-            color: #000000 !important;
-            background: #FF9500 !important;
-            border-radius: 8px !important;
-            text-decoration: none !important;
-            padding: 16px 0 !important;
-            margin: 20px 10px 20px 10px !important;
-            border: none !important;
-            cursor: pointer !important;
-        }
-        /* 注意書きのスタイル */
-        .custom-note {
-            font-family: 'Inter', sans-serif;
-            color: #FFFFFF;
-            font-size: 12px;
-            line-height: 16px;
-            padding: 10px;
-            text-align: left !important;
-        }
-        div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {
-            text-align: left !important;
-        }
-        </style>
-    ''', unsafe_allow_html=True)
-    st.session_state.css_loaded = True
+st.markdown('''
+    <style>
+    .stApp {
+        background: #1E1E1E !important;
+    }
+    /* 全体幅375px中央寄せ */
+    .main .block-container {
+        max-width: 375px !important;
+        padding: 0 !important;
+        margin: 0 auto !important;
+    }
+    /* 共通ボタンデザインをstButtonに強制適用 */
+    div[data-testid="stButton"] > button,
+    div.stButton > button,
+    button[data-testid="baseButton-secondary"] {
+        width: 100% !important;
+        text-align: center !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: #000000 !important;
+        background: #FF9500 !important;
+        border-radius: 8px !important;
+        text-decoration: none !important;
+        padding: 16px 0 !important;
+        margin: 20px 10px 20px 10px !important;
+        border: none !important;
+        cursor: pointer !important;
+    }
+    /* 注意書きのスタイル */
+    .custom-note {
+        font-family: 'Inter', sans-serif;
+        color: #FFFFFF;
+        font-size: 12px;
+        line-height: 16px;
+        padding: 10px;
+        text-align: left !important;
+    }
+    div[data-testid="stMarkdownContainer"] .custom-note, div[data-testid="stMarkdownContainer"] .custom-note * {
+        text-align: left !important;
+    }
+    </style>
+''', unsafe_allow_html=True)
 
 # ─── 2. データ読み込み & 前処理 ─────────────────────────────────
 # 抽出対象の品詞をリスト化（将来的に増やしやすい形）
