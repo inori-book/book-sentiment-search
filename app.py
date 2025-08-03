@@ -505,7 +505,7 @@ elif st.session_state.page == "results":
             # タイトル行のみクリッカブル
             escaped_title = escape_html(row['title'])
             escaped_author = escape_html(row['author'])
-            if st.button(f"{row['rank']}位：『{escaped_title}』／{escaped_author}", key=f"title_btn_{i}"):
+            if st.button(f"『{escaped_title}』／{escaped_author}：{row['count']}回", key=f"title_btn_{i}"):
                 to_detail(i)
                 st.rerun()
             card_html = f'''
@@ -514,8 +514,7 @@ elif st.session_state.page == "results":
                     <div class="card-thumbnail">
                         <img src="{cover_url}" alt="{escaped_title}" />
                     </div>
-                    <div class="card-meta">
-                        <div>キーワード登場回数：{row['count']}回</div>
+                    <div class="card-meta" style="display: flex; flex-direction: column; justify-content: center;">
                         <div>ジャンル</div>
                         <div class="genre-tags-container">
                             {genre_tags_html}
@@ -544,7 +543,7 @@ elif st.session_state.page == "detail":
         book = res.loc[idx]
         escaped_title = escape_html(book["title"])
         escaped_author = escape_html(book["author"])
-        st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">{book["rank"]}位：『{escaped_title}』／{escaped_author}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">『{escaped_title}』／{escaped_author}：{book["count"]}回</div>', unsafe_allow_html=True)
         rakuten = fetch_rakuten_book(book.get("isbn", ""))
         # 書影とボタンを横並びで表示
         col1, col2 = st.columns([1,2])
@@ -558,10 +557,10 @@ elif st.session_state.page == "detail":
                 st.link_button("商品ページを開く（楽天ブックス）", url, type="primary")
             st.link_button("感想を投稿する（Googleフォーム）", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
         # 書誌情報
-        st.write(f"**出版社**: {escape_html(rakuten.get('publisher','—'))}")
-        st.write(f"**発行日**: {escape_html(rakuten.get('pubdate','—'))}")
-        st.write(f"**定価**: {escape_html(rakuten.get('price','—'))} 円")
-        st.write(f"**紹介文**: {escape_html(rakuten.get('description','—'))}")
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**出版社**: {escape_html(rakuten.get("publisher","—"))}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**発行日**: {escape_html(rakuten.get("pubdate","—"))}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**定価**: {escape_html(rakuten.get("price","—"))} 円</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**紹介文**: {escape_html(rakuten.get("description","—"))}</div>', unsafe_allow_html=True)
 
         # レーダーチャート
         # 「エロ」を上として時計回りに配置
