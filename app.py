@@ -276,6 +276,9 @@ def to_detail(idx: int):
 
 def to_home():
     st.session_state.page = "home"
+    # TOPに戻った時に検索ワードをクリア
+    st.session_state.raw_input = ""
+    st.session_state.raw_select = ""
 
 
 
@@ -557,10 +560,10 @@ elif st.session_state.page == "detail":
                 st.link_button("商品ページを開く（楽天ブックス）", url, type="primary")
             st.link_button("感想を投稿する（Googleフォーム）", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
         # 書誌情報
-        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**出版社**: {escape_html(rakuten.get("publisher","—"))}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**発行日**: {escape_html(rakuten.get("pubdate","—"))}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**定価**: {escape_html(rakuten.get("price","—"))} 円</div>', unsafe_allow_html=True)
-        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">**紹介文**: {escape_html(rakuten.get("description","—"))}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">出版社: {escape_html(rakuten.get("publisher","—"))}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">発行日: {escape_html(rakuten.get("pubdate","—"))}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">定価: {escape_html(rakuten.get("price","—"))} 円</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color:#FFFFFF;font-family:Inter,sans-serif;font-size:16px;line-height:24px;margin:10px 0;">紹介文: {escape_html(rakuten.get("description","—"))}</div>', unsafe_allow_html=True)
 
         # レーダーチャート
         # 「エロ」を上として時計回りに配置
