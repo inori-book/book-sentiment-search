@@ -362,19 +362,19 @@ if st.session_state.page == "home":
     # 検索フォーム（横並び）
     col1, col2 = st.columns(2, gap="small")
     with col1:
-        st.markdown('<div class="custom-label">フリーテキストで検索</div>', unsafe_allow_html=True)
-        st.session_state.raw_input = st.text_area(
-            "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
-            placeholder="例：美しい、切ない…",
-            height=70,
-            label_visibility="collapsed"
-        )
-    with col2:
         st.markdown('<div class="custom-label">候補から検索</div>', unsafe_allow_html=True)
         filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
         st.session_state.raw_select = st.selectbox(
             "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_box",
             placeholder="形容詞を選択",
+            label_visibility="collapsed"
+        )
+    with col2:
+        st.markdown('<div class="custom-label">フリーテキストで検索</div>', unsafe_allow_html=True)
+        st.session_state.raw_input = st.text_area(
+            "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
+            placeholder="例：美しい、切ない…",
+            height=70,
             label_visibility="collapsed"
         )
     # 検索ボタン（st.button＋CSSで実装）
