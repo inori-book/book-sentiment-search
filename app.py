@@ -39,7 +39,7 @@ def get_font_path():
     return None
 
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
-st.set_page_config(page_title="感想形容詞で探す本アプリ", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="YOMIAJI : βテスト版", layout="wide", initial_sidebar_state="collapsed")
 
 # 共通CSSを毎回読み込む（安定性を優先）
 st.markdown('''
