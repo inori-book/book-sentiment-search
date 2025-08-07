@@ -60,8 +60,6 @@ st.markdown('''
     button[data-testid="baseButton-primary"],
     button[data-testid="baseButton-danger"] {
         width: 100% !important;
-        max-width: 355px !important;
-        min-width: 355px !important;
         text-align: center !important;
         font-size: 16px !important;
         font-weight: bold !important;
@@ -74,7 +72,6 @@ st.markdown('''
         border: none !important;
         cursor: pointer !important;
         box-sizing: border-box !important;
-        flex-shrink: 0 !important;
     }
     /* 注意書きのスタイル */
     .custom-note {
