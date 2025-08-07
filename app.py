@@ -373,10 +373,9 @@ if st.session_state.page == "home":
         )
     with col2:
         st.markdown('<div class="custom-label">フリーテキストで検索</div>', unsafe_allow_html=True)
-        st.session_state.raw_input = st.text_area(
+        st.session_state.raw_input = st.text_input(
             "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
             placeholder="例：美しい、切ない…",
-            height=70,
             label_visibility="collapsed"
         )
     # 検索ボタン（st.button＋CSSで実装）
