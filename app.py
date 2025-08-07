@@ -56,13 +56,7 @@ st.markdown('''
     /* 共通ボタンデザインをstButtonに強制適用 */
     div[data-testid="stButton"] > button,
     div.stButton > button,
-    button[data-testid="baseButton-secondary"],
-    button[data-testid="baseButton-primary"],
-    button[data-testid="baseButton-danger"],
-    /* st.link_buttonに対応 */
-    div[data-testid="stButton"] > a,
-    a[data-testid="baseButton-primary"],
-    a[data-testid="baseButton-secondary"] {
+    button[data-testid="baseButton-secondary"] {
         width: 100% !important;
         text-align: center !important;
         font-size: 16px !important;
@@ -75,8 +69,6 @@ st.markdown('''
         margin: 20px 10px 20px 10px !important;
         border: none !important;
         cursor: pointer !important;
-        box-sizing: border-box !important;
-        display: block !important;
     }
     /* 注意書きのスタイル */
     .custom-note {
@@ -159,9 +151,6 @@ def load_stopwords(path: str = "stopwords.txt") -> set[str]:
 def get_rakuten_app_id():
     return st.secrets.get("RAKUTEN_APP_ID")
 
-def get_rakuten_affiliate_id():
-    return st.secrets.get("RAKUTEN_AFFILIATE_ID")
-
 def normalize_isbn(isbn_str: str) -> str:
     """ISBNを正規化する（ハイフンや空白を除去）"""
     if not isbn_str:
@@ -185,19 +174,12 @@ def fetch_rakuten_book(isbn: str) -> dict:
         st.error("楽天APIキーが設定されていません。管理者にお問い合わせください。")
         return {}
     
-    # アフィリエイトIDの取得
-    affiliate_id = get_rakuten_affiliate_id()
-    
     url = "https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404"
     params = {
         "isbn": normalized_isbn,
         "applicationId": app_id,
         "format": "json"
     }
-    
-    # アフィリエイトIDが設定されている場合は追加
-    if affiliate_id:
-        params["affiliateId"] = affiliate_id
     
     try:
         res = requests.get(url, params=params, timeout=10)  # タイムアウトを設定
@@ -573,19 +555,7 @@ elif st.session_state.page == "detail":
             if cover_url:
                 st.image(cover_url, width=100)
         with col2:
-            # アフィリエイトリンクの生成
-            item_url = rakuten.get("itemUrl")
-            affiliate_id = get_rakuten_affiliate_id()
-            
-            if item_url and affiliate_id:
-                # アフィリエイトIDをURLに追加
-                if "?" in item_url:
-                    url = f"{item_url}&rafcid={affiliate_id}"
-                else:
-                    url = f"{item_url}?rafcid={affiliate_id}"
-            else:
-                url = item_url or rakuten.get("affiliateUrl")
-            
+            url = rakuten.get("affiliateUrl") or rakuten.get("itemUrl")
             if url:
                 st.link_button("商品ページを開く（楽天ブックス）", url, type="primary")
             st.link_button("感想を投稿する（Googleフォーム）", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
