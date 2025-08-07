@@ -56,8 +56,12 @@ st.markdown('''
     /* 共通ボタンデザインをstButtonに強制適用 */
     div[data-testid="stButton"] > button,
     div.stButton > button,
-    button[data-testid="baseButton-secondary"] {
+    button[data-testid="baseButton-secondary"],
+    button[data-testid="baseButton-primary"],
+    button[data-testid="baseButton-danger"] {
         width: 100% !important;
+        max-width: 355px !important;
+        min-width: 355px !important;
         text-align: center !important;
         font-size: 16px !important;
         font-weight: bold !important;
@@ -69,6 +73,8 @@ st.markdown('''
         margin: 20px 10px 20px 10px !important;
         border: none !important;
         cursor: pointer !important;
+        box-sizing: border-box !important;
+        flex-shrink: 0 !important;
     }
     /* 注意書きのスタイル */
     .custom-note {
@@ -565,7 +571,19 @@ elif st.session_state.page == "detail":
             if cover_url:
                 st.image(cover_url, width=100)
         with col2:
-            url = rakuten.get("affiliateUrl") or rakuten.get("itemUrl")
+            # アフィリエイトリンクの生成
+            item_url = rakuten.get("itemUrl")
+            affiliate_id = get_rakuten_affiliate_id()
+            
+            if item_url and affiliate_id:
+                # アフィリエイトIDをURLに追加
+                if "?" in item_url:
+                    url = f"{item_url}&rafcid={affiliate_id}"
+                else:
+                    url = f"{item_url}?rafcid={affiliate_id}"
+            else:
+                url = item_url or rakuten.get("affiliateUrl")
+            
             if url:
                 st.link_button("商品ページを開く（楽天ブックス）", url, type="primary")
             st.link_button("感想を投稿する（Googleフォーム）", "https://forms.gle/Eh3fYtnzSHmN3KMSA", type="primary")
