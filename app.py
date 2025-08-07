@@ -56,7 +56,13 @@ st.markdown('''
     /* 共通ボタンデザインをstButtonに強制適用 */
     div[data-testid="stButton"] > button,
     div.stButton > button,
-    button[data-testid="baseButton-secondary"] {
+    button[data-testid="baseButton-secondary"],
+    /* より汎用的なセレクター */
+    button[data-testid*="Button"],
+    div[data-testid*="Button"] > button,
+    /* st.link_button対応 */
+    a[data-testid*="Button"],
+    div[data-testid*="Button"] > a {
         width: 100% !important;
         text-align: center !important;
         font-size: 16px !important;
@@ -69,6 +75,7 @@ st.markdown('''
         margin: 20px 10px 20px 10px !important;
         border: none !important;
         cursor: pointer !important;
+        box-sizing: border-box !important;
     }
     /* 注意書きのスタイル */
     .custom-note {
