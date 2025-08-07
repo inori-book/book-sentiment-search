@@ -58,7 +58,11 @@ st.markdown('''
     div.stButton > button,
     button[data-testid="baseButton-secondary"],
     button[data-testid="baseButton-primary"],
-    button[data-testid="baseButton-danger"] {
+    button[data-testid="baseButton-danger"],
+    /* st.link_buttonに対応 */
+    div[data-testid="stButton"] > a,
+    a[data-testid="baseButton-primary"],
+    a[data-testid="baseButton-secondary"] {
         width: 100% !important;
         text-align: center !important;
         font-size: 16px !important;
@@ -72,6 +76,7 @@ st.markdown('''
         border: none !important;
         cursor: pointer !important;
         box-sizing: border-box !important;
+        display: block !important;
     }
     /* 注意書きのスタイル */
     .custom-note {
