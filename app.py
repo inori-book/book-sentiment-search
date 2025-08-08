@@ -272,7 +272,6 @@ def to_results(adj=None):
     if adj is None:
         adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
-    st.session_state.raw_input = adj  # 検索に使ったワードを入力欄にも反映
     tmp = df.copy()
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
@@ -365,9 +364,8 @@ if st.session_state.page == "home":
     col1, col2 = st.columns(2, gap="small")
     with col1:
         st.markdown('<div class="custom-label">候補から検索</div>', unsafe_allow_html=True)
-        filtered = [w for w in suggestions if w.startswith(st.session_state.raw_input)] if st.session_state.raw_input else suggestions
         st.session_state.raw_select = st.selectbox(
-            "候補から選ぶ", options=[""] + filtered, index=0, key="raw_select_box",
+            "候補から選ぶ", options=[""] + suggestions, index=0, key="raw_select_box",
             placeholder="形容詞を選択",
             label_visibility="collapsed"
         )
@@ -413,8 +411,6 @@ elif st.session_state.page == "results":
         to_home()
         st.rerun()
     # 1. 検索ワード入力欄
-    if not st.session_state.raw_input:
-        st.session_state.raw_input = st.session_state.get('adj', '')
     st.session_state.raw_input = st.text_input(
         "", value=st.session_state.raw_input, key="raw_input_results", placeholder=""
     )
