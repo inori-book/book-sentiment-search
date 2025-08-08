@@ -269,8 +269,12 @@ if "raw_select" not in st.session_state:
 
 # ─── 6. ページ遷移用関数 ─────────────────────────────────────
 def to_results(adj=None):
+    st.write("DEBUG - to_results開始: adj =", adj)
+    st.write("DEBUG - to_results開始: raw_select =", st.session_state.raw_select)
+    st.write("DEBUG - to_results開始: raw_input =", st.session_state.raw_input)
     if adj is None:
         adj = st.session_state.raw_select or st.session_state.raw_input.strip()
+    st.write("DEBUG - to_results: 計算後のadj =", adj)
     st.session_state.adj = adj
     tmp = df.copy()
     # 形容詞絞り込み
@@ -378,6 +382,8 @@ if st.session_state.page == "home":
             autocomplete="off"
         )
     # 検索ボタン（st.button＋CSSで実装）
+    st.write("DEBUG - TOP画面: raw_input =", st.session_state.raw_input)
+    st.write("DEBUG - TOP画面: raw_select =", st.session_state.raw_select)
     st.button("検索", on_click=to_results, key="search_btn_home")
     # 区切り線
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
@@ -412,8 +418,13 @@ elif st.session_state.page == "results":
         to_home()
         st.rerun()
     # 1. 検索ワード入力欄
+    # 検索結果画面では、検索に使ったワードを表示
+    display_value = st.session_state.get('adj', st.session_state.raw_input)
+    st.write("DEBUG - 検索結果画面: adj =", st.session_state.get('adj', ''))
+    st.write("DEBUG - 検索結果画面: raw_input =", st.session_state.raw_input)
+    st.write("DEBUG - 検索結果画面: display_value =", display_value)
     st.session_state.raw_input = st.text_input(
-        "", value=st.session_state.raw_input, key="raw_input_results", placeholder=""
+        "", value=display_value, key="raw_input_results", placeholder=""
     )
     # 2. 検索ボタン
     new_input = st.session_state.raw_input
