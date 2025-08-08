@@ -412,8 +412,6 @@ elif st.session_state.page == "results":
         to_home()
         st.rerun()
     # 1. 検索ワード入力欄
-    if not st.session_state.raw_input:
-        st.session_state.raw_input = st.session_state.get('adj', '')
     st.session_state.raw_input = st.text_input(
         "", value=st.session_state.raw_input, key="raw_input_results", placeholder=""
     )
