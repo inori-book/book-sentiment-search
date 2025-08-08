@@ -375,7 +375,9 @@ if st.session_state.page == "home":
         st.markdown('<div class="custom-label">フリーテキストで検索</div>', unsafe_allow_html=True)
         st.session_state.raw_input = st.text_input(
             "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
-            label_visibility="collapsed"
+            placeholder="例：美しい、切ない…",
+            label_visibility="collapsed",
+            autocomplete="off"
         )
     # 検索ボタン（st.button＋CSSで実装）
     st.button("検索", on_click=to_results, key="search_btn_home")
@@ -427,6 +429,7 @@ elif st.session_state.page == "results":
     escaped_adj = escape_html(adj)
     st.markdown(f'<div style="width:355px;margin:12px auto 0 auto;font-family:Inter,sans-serif;font-size:20px;color:#FFFFFF;line-height:28px;font-weight:bold;">検索結果「{escaped_adj}」</div>', unsafe_allow_html=True)
     # 5. 注意書き
+    st.markdown('<div class="custom-note">※検索されたキーワードが、感想中に登場する書籍を表示しています。</div>', unsafe_allow_html=True)
     st.markdown('<div class="custom-note">※楽天ブックスに登録がない書籍に関しては、書影その他情報が表示されない場合があります。</div>', unsafe_allow_html=True)
     # 6. 検索結果カード
     st.markdown('''
