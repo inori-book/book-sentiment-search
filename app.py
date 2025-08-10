@@ -375,8 +375,8 @@ if st.session_state.page == "home":
         )
     with col2:
         st.markdown('<div class="custom-label">フリーテキストで検索</div>', unsafe_allow_html=True)
-        st.session_state.raw_input = st.text_input(
-            "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input_input",
+        st.text_input(
+            "形容詞を入力してください", value=st.session_state.raw_input, key="raw_input",
             placeholder="例：美しい、切ない…",
             label_visibility="collapsed",
             autocomplete="off"
@@ -423,8 +423,8 @@ elif st.session_state.page == "results":
     st.write("DEBUG - 検索結果画面: adj =", st.session_state.get('adj', ''))
     st.write("DEBUG - 検索結果画面: raw_input =", st.session_state.raw_input)
     st.write("DEBUG - 検索結果画面: display_value =", display_value)
-    st.session_state.raw_input = st.text_input(
-        "", value=display_value, key="raw_input_results", placeholder=""
+    st.text_input(
+        "", value=display_value, key="raw_input", placeholder=""
     )
     # 2. 検索ボタン
     new_input = st.session_state.raw_input
