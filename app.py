@@ -85,6 +85,27 @@ st.markdown('''
         min-width: 100% !important;
         flex: 1 1 100% !important;
     }
+    /* st.link_buttonの幅制御 */
+    div[data-testid="stLinkButton"] {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+    div[data-testid="stLinkButton"] > a {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+        align-self: stretch !important;
+        text-align: center !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        padding: 16px 0 !important;
+        margin: 20px 10px 20px 10px !important;
+        box-sizing: border-box !important;
+    }
     /* 注意書きのスタイル */
     .custom-note {
         font-family: 'Inter', sans-serif;
