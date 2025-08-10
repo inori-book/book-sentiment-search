@@ -416,9 +416,8 @@ elif st.session_state.page == "results":
         st.rerun()
     # 1. 検索ワード入力欄
     # 検索結果画面では、検索に使ったワードを表示
-    display_value = st.session_state.get('adj', st.session_state.raw_input)
     st.text_input(
-        "", value=display_value, key="raw_input", placeholder=""
+        "", key="raw_input", placeholder=""
     )
     # 2. 検索ボタン
     new_input = st.session_state.raw_input
