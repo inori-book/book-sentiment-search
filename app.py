@@ -41,6 +41,12 @@ def get_font_path():
 # ─── 1. ページ設定（最初に） ─────────────────────────────────
 st.set_page_config(page_title="YOMIAJI : βテスト版", layout="wide", initial_sidebar_state="collapsed")
 
+# ヘルスチェック用エンドポイント
+params = st.query_params
+if params.get("ping") == "1":
+    st.write("ok")
+    st.stop()
+
 # 共通CSSを毎回読み込む（安定性を優先）
 st.markdown('''
     <style>
@@ -84,27 +90,6 @@ st.markdown('''
         max-width: none !important;
         min-width: 100% !important;
         flex: 1 1 100% !important;
-    }
-    /* st.link_buttonの幅制御 */
-    div[data-testid="stLinkButton"] {
-        width: 100% !important;
-        max-width: none !important;
-        min-width: 100% !important;
-        flex: 1 1 100% !important;
-    }
-    div[data-testid="stLinkButton"] > a {
-        display: block !important;
-        width: 100% !important;
-        max-width: none !important;
-        min-width: 100% !important;
-        flex: 1 1 100% !important;
-        align-self: stretch !important;
-        text-align: center !important;
-        font-size: 16px !important;
-        font-weight: bold !important;
-        padding: 16px 0 !important;
-        margin: 20px 10px 20px 10px !important;
-        box-sizing: border-box !important;
     }
     /* 注意書きのスタイル */
     .custom-note {
@@ -171,8 +156,6 @@ def load_data(path: str = "database.csv") -> pd.DataFrame:
     tokenizer = Tokenizer()
     df["keywords"] = df["review"].apply(extract_target_words)
     return df, file_hash
-
-df, _ = load_data()
 
 # ─── 3. ストップワード外部化 & 候補形容詞 ─────────────────────────────
 @st.cache_data(ttl=3600)  # 1時間でキャッシュを無効化
@@ -274,8 +257,14 @@ def fetch_rakuten_book(isbn: str) -> dict:
         return {}
 
 STOPWORDS = load_stopwords()
-all_keywords = sorted({kw for lst in df["keywords"] for kw in lst})
-suggestions = [w for w in all_keywords if w not in STOPWORDS]
+
+def load_data_if_needed():
+    """必要に応じてデータをロードする"""
+    if st.session_state.df is None:
+        df, _ = load_data()
+        st.session_state.df = df
+        all_keywords = sorted({kw for lst in df["keywords"] for kw in lst})
+        st.session_state.suggestions = [w for w in all_keywords if w not in STOPWORDS]
 
 # ─── 4. セッションステート初期化 ─────────────────────────────────
 if "page" not in st.session_state:
@@ -290,13 +279,21 @@ if "raw_input" not in st.session_state:
     st.session_state.raw_input = ""
 if "raw_select" not in st.session_state:
     st.session_state.raw_select = ""
+if "df" not in st.session_state:
+    st.session_state.df = None
+if "suggestions" not in st.session_state:
+    st.session_state.suggestions = []
 
 # ─── 6. ページ遷移用関数 ─────────────────────────────────────
 def to_results(adj=None):
     if adj is None:
         adj = st.session_state.raw_select or st.session_state.raw_input.strip()
     st.session_state.adj = adj
-    tmp = df.copy()
+    
+    # データが未ロードの場合はロード
+    load_data_if_needed()
+    
+    tmp = st.session_state.df.copy()
     # 形容詞絞り込み
     tmp["count"] = tmp["keywords"].apply(lambda lst: lst.count(adj))
     res = tmp[tmp["count"] > 0].sort_values("count", ascending=False)
@@ -388,8 +385,11 @@ if st.session_state.page == "home":
     col1, col2 = st.columns(2, gap="small")
     with col1:
         st.markdown('<div class="custom-label">候補から検索</div>', unsafe_allow_html=True)
+        # 候補リストが未ロードの場合はロード
+        if not st.session_state.suggestions:
+            load_data_if_needed()
         st.session_state.raw_select = st.selectbox(
-            "候補から選ぶ", options=[""] + suggestions, index=0, key="raw_select_box",
+            "候補から選ぶ", options=[""] + st.session_state.suggestions, index=0, key="raw_select_box",
             placeholder="形容詞を選択",
             label_visibility="collapsed"
         )
